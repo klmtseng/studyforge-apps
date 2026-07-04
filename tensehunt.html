@@ -114,7 +114,7 @@ function renderRound(base,v,sents){
  el.innerHTML=`
   <div class="target"><div class="tlabel">🎯 目標動詞</div>
    <div class="tv">${base}</div>
-   <div class="tzh">${v.kk||''}　${v.zh||''}　<b style="color:#ffd166">${v.ved||''} / ${v.vpp||''}</b></div>
+   <div class="tzh">${v.kk||''}　${v.zh||''}</div>
    <div class="tprog"><span id="rp">0 / ${sents.length} 句完成</span>
     <span>累計答對 ${P.right} / ${P.total}</span></div></div>
   <div class="mission">任務：下面每一句——有 <b>${base}</b> 家族的字就<b>點那個字</b>；
