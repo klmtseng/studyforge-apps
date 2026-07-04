@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>不規則動詞三態</title>
+<style>
+ *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+ :root{--bg:#0f1420;--card:#1a2130;--card2:#232c3f;--tx:#e8edf6;--dim:#95a0b5;--line:#2c3547;
+   --ok:#28c76f;--bad:#ea5455;--warn:#ff9f43;--blue:#4f8cff}
+ body{font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;
+   background:var(--bg);color:var(--tx);line-height:1.55;-webkit-text-size-adjust:100%;
+   min-height:100vh;display:flex;flex-direction:column}
+ header{padding:16px 16px 10px;text-align:center}
+ h1{font-size:19px}
+ .sub{color:var(--dim);font-size:12px;margin-top:2px}
+ nav{display:flex;gap:8px;padding:10px 14px;position:sticky;top:0;z-index:10;
+   background:linear-gradient(180deg,var(--bg) 75%,transparent)}
+ .navbtn{flex:1;padding:10px 4px;text-align:center;border-radius:12px;font-size:14px;
+   background:var(--card);border:1px solid var(--line);color:var(--dim);cursor:pointer;user-select:none}
+ .navbtn.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+ main{flex:1;padding:6px 14px 40px;max-width:640px;margin:0 auto;width:100%}
+ .hidden{display:none!important}
+
+ /* ===== 學規律 ===== */
+ .gcard{border-radius:14px;border:1px solid var(--line);background:var(--card);
+   margin-top:12px;overflow:hidden}
+ .ghead{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer}
+ .gdot{width:11px;height:11px;border-radius:50%;flex:none}
+ .gname{font-size:15.5px;font-weight:700;flex:1}
+ .gnum{font-size:12px;color:var(--dim)}
+ .gprog{height:4px;background:var(--card2)}
+ .gprog i{display:block;height:100%;background:var(--ok);width:0%}
+ .ghint{padding:2px 14px 10px;color:var(--dim);font-size:12.5px}
+ .gbody{display:none;border-top:1px solid var(--line)}
+ .gcard.open .gbody{display:block}
+ .vrow{display:flex;align-items:baseline;gap:8px;padding:10px 14px;border-top:1px solid #202839;flex-wrap:wrap}
+ .vrow:first-child{border-top:none}
+ .vv{font-size:16px;font-weight:700;min-width:86px}
+ .vkk{font-size:11px;color:var(--dim)}
+ .vforms{font-size:14.5px;color:#ffd166;width:100%;padding-left:2px}
+ .vforms b{color:#ffd166}
+ .vzh{font-size:12.5px;color:var(--dim)}
+ .vtrap{width:100%;font-size:12px;color:var(--warn);background:rgba(255,159,67,.08);
+   border-left:2px solid var(--warn);padding:4px 8px;border-radius:4px;margin-top:2px}
+ .star{margin-left:auto;font-size:15px;color:#556;cursor:pointer;user-select:none}
+ .star.on{color:#f6c343}
+
+ /* ===== 翻卡 ===== */
+ .pickbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+ .pick{font-size:12px;padding:6px 11px;border-radius:16px;border:1px solid var(--line);
+   background:var(--card);color:var(--dim);cursor:pointer;user-select:none}
+ .pick.on{color:#fff;border-color:var(--blue);background:rgba(79,140,255,.25)}
+ .flashwrap{margin-top:14px;perspective:900px}
+ .flash{position:relative;border-radius:18px;min-height:240px;cursor:pointer;
+   transform-style:preserve-3d;transition:transform .35s}
+ .flash.flip{transform:rotateY(180deg)}
+ .face{position:absolute;inset:0;border-radius:18px;padding:22px;backface-visibility:hidden;
+   display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+   border:1px solid var(--line)}
+ .front{background:linear-gradient(160deg,#1c2740,#171e2e)}
+ .back{background:linear-gradient(160deg,#1e3226,#16211b);transform:rotateY(180deg)}
+ .fv{font-size:34px;font-weight:800;letter-spacing:.5px}
+ .fkk{color:var(--dim);margin-top:4px}
+ .fzh{font-size:16px;color:#cdd6e6;margin-top:8px}
+ .ftip{position:absolute;bottom:12px;left:0;right:0;font-size:11px;color:var(--dim)}
+ .bform{font-size:15px;color:var(--dim);margin-top:8px}
+ .bform b{font-size:24px;color:#ffd166;display:block;margin-top:1px}
+ .btrap{font-size:12px;color:var(--warn);margin-top:10px;padding:5px 10px;
+   background:rgba(255,159,67,.1);border-radius:8px}
+ .gradebar{display:flex;gap:10px;margin-top:14px}
+ .gbtn{flex:1;padding:14px;border-radius:14px;font-size:16px;font-weight:700;text-align:center;
+   cursor:pointer;user-select:none;border:none;color:#fff}
+ .gbtn.no{background:#5b2530}
+ .gbtn.yes{background:#1e5138}
+ .fmeta{display:flex;justify-content:space-between;color:var(--dim);font-size:12px;margin-top:10px}
+ .donebox{text-align:center;padding:50px 20px}
+ .donebox .big{font-size:44px}
+ .donebox p{color:var(--dim);margin-top:8px;font-size:14px}
+ .again{margin-top:18px;display:inline-block;padding:12px 26px;border-radius:14px;
+   background:var(--blue);color:#fff;font-weight:700;cursor:pointer;user-select:none}
+
+ /* ===== 小考 ===== */
+ .qhead{display:flex;justify-content:space-between;align-items:center;margin-top:14px;
+   color:var(--dim);font-size:13px}
+ .qbar{height:6px;background:var(--card2);border-radius:3px;margin-top:8px;overflow:hidden}
+ .qbar i{display:block;height:100%;background:var(--blue);transition:width .3s}
+ .qcard{background:var(--card);border:1px solid var(--line);border-radius:16px;
+   padding:20px;margin-top:14px;text-align:center}
+ .qq{font-size:15px;color:var(--dim)}
+ .qv{font-size:30px;font-weight:800;margin-top:6px}
+ .qzh{color:var(--dim);font-size:13.5px;margin-top:3px}
+ .opts{margin-top:16px;display:grid;gap:10px}
+ .opt{padding:13px;border-radius:12px;background:var(--card2);border:1px solid var(--line);
+   font-size:17px;font-weight:600;cursor:pointer;user-select:none}
+ .opt.right{background:#1e5138;border-color:var(--ok)}
+ .opt.wrong{background:#5b2530;border-color:var(--bad)}
+ .opt.dim{opacity:.45}
+ .qnext{margin-top:16px;padding:12px 30px;border-radius:12px;background:var(--blue);
+   color:#fff;font-weight:700;display:inline-block;cursor:pointer;user-select:none}
+ .qtrap{margin-top:12px;font-size:12.5px;color:var(--warn)}
+ .scorebox{text-align:center;padding:40px 16px}
+ .scorebox .n{font-size:56px;font-weight:800}
+ .scorebox .msg{margin-top:6px;color:var(--dim)}
+ .review{margin-top:18px;text-align:left;background:var(--card);border:1px solid var(--line);
+   border-radius:14px;padding:6px 14px}
+ .review .vrow{padding:10px 0}
+ footer{text-align:center;color:#525d72;font-size:10.5px;padding:14px}
+</style>
+</head>
+<body>
+<noscript><div style="background:#5b2530;color:#fff;padding:12px;text-align:center;font-size:13px">
+⚠️ 這個 App 需要 JavaScript。請把檔案下載後用瀏覽器（Chrome / Safari / Firefox）開啟，
+不要用聊天軟體的預覽視窗。</div></noscript>
+<div id="errbar" style="display:none;background:#5b2530;color:#fff;padding:12px;text-align:center;font-size:13px"></div>
+<header>
+ <h1>⚡ 不規則動詞三態</h1>
+ <div class="sub" id="subline"></div>
+</header>
+<nav>
+ <div class="navbtn on" data-m="learn">🧩 學規律</div>
+ <div class="navbtn" data-m="flash">🃏 翻卡自測</div>
+ <div class="navbtn" data-m="quiz">✏️ 小考</div>
+</nav>
+<main>
+ <div id="pg-learn"></div>
+ <div id="pg-flash" class="hidden"></div>
+ <div id="pg-quiz" class="hidden"></div>
+</main>
+<footer>來源：國中七年級不規則動詞三態表（110 個） ‧ 資料驗證：Claude (strong model) 逐頁視覺核對 2026-07-04 ‧ study-forge v1</footer>
+<script>
+window.onerror=function(m){var b=document.getElementById('errbar');
+ b.style.display='block';b.textContent='⚠️ 程式出錯了：'+m+'（請截圖回報）';};
+const DATA={"meta": {"title": "不規則動詞三態", "grade": "七年級", "source_pdf": "（本機教材，公開版不含）", "source_desc": "國中七年級不規則動詞三態表（110 個）", "human_verified": true, "verified_by": "Claude (strong model) 逐頁視覺核對 2026-07-04", "schema_version": 1}, "groups": [{"id": "aaa", "name": "三態全同", "hint": "最好賺的一群：三個長一樣！但小心 read 拼法同、發音變 [rid]→[rɛd]", "color": "#28c76f"}, {"id": "aba", "name": "頭尾相同 A-B-A", "hint": "只有中間變：come-came-come。become、run 同款", "color": "#00cfe8"}, {"id": "ought", "name": "ought/aught 家族", "hint": "「買帶想打找」變 ought；「抓、教」變 aught。尾音都唸 [ɔt]", "color": "#ff9f43"}, {"id": "ept", "name": "-ep → -ept 家族", "hint": "keep→kept。睡覺(sleep)、掃地(sweep)、哭(weep)都一樣", "color": "#f6c343"}, {"id": "dt", "name": "結尾變 t", "hint": "bend→bent（d 換 t）；feel→felt、leave→left（加 t 縮母音）", "color": "#9b5de5"}, {"id": "abb", "name": "母音一變到底 A-B-B", "hint": "母音變一次，後面兩態相同：dig-dug-dug、win-won-won", "color": "#4f8cff"}, {"id": "aid", "name": "拼法小改裝", "hint": "say/pay/lay→said/paid/laid；sell/tell→sold/told；stand→stood", "color": "#7367f0"}, {"id": "iau", "name": "i-a-u 三段變", "hint": "唱歌口訣：sing-sang-sung。begin、drink、swim、ring、sink 全家福", "color": "#ea5455"}, {"id": "ew", "name": "ew / own 家族", "hint": "know-knew-known。吹(blow)、長(grow)、丟(throw)、飛(fly)、畫(draw)", "color": "#00b8a9"}, {"id": "oen", "name": "o…en 家族", "hint": "過去式變 o、第三態加 n：speak-spoke-spoken、break-broke-broken", "color": "#f08a5d"}, {"id": "itten", "name": "雙寫+en 家族", "hint": "write-wrote-written（tt）、ride-rode-ridden（dd）、bite、hide", "color": "#b83b5e"}, {"id": "orn", "name": "ore / orn 家族", "hint": "穿(wear)、撕(tear)、發誓(swear)、生(bear)：-ore→-orn", "color": "#6a2c70"}, {"id": "solo", "name": "個性派（各自記）", "hint": "沒規律的大魔王：be、do、go、eat、see、take…一個一個馴服", "color": "#8a94a6"}], "verbs": [{"v": "be", "kk": "[bi]", "zh": "是；存在", "ved": "was / were", "vpp": "been", "g": "solo", "trap": "唯一有兩個過去式：I/he/she/it→was，you/we/they→were"}, {"v": "bear", "kk": "[bɛr]", "zh": "生（孩子）；負擔", "ved": "bore", "vpp": "born / borne", "g": "orn", "trap": "「出生」用 born（He was born…）；「承擔」用 borne"}, {"v": "beat", "kk": "[bit]", "zh": "打", "ved": "beat", "vpp": "beaten", "g": "solo", "trap": "前兩態相同，第三態才加 en：beat-beat-beaten"}, {"v": "become", "kk": "[bɪˋkʌm]", "zh": "變成", "ved": "became", "vpp": "become", "g": "aba"}, {"v": "begin", "kk": "[bɪˋgɪn]", "zh": "開始", "ved": "began", "vpp": "begun", "g": "iau"}, {"v": "bend", "kk": "[bɛnd]", "zh": "彎曲", "ved": "bent", "vpp": "bent", "g": "dt"}, {"v": "bite", "kk": "[baɪt]", "zh": "咬", "ved": "bit", "vpp": "bitten", "g": "itten"}, {"v": "blow", "kk": "[blo]", "zh": "吹", "ved": "blew", "vpp": "blown", "g": "ew"}, {"v": "break", "kk": "[brek]", "zh": "打破；切斷", "ved": "broke", "vpp": "broken", "g": "oen"}, {"v": "bring", "kk": "[brɪŋ]", "zh": "帶來", "ved": "brought", "vpp": "brought", "g": "ought"}, {"v": "broadcast", "kk": "[ˋbrɔd͵kæst]", "zh": "廣播", "ved": "broadcast", "vpp": "broadcast", "g": "aaa"}, {"v": "build", "kk": "[bɪld]", "zh": "建造；蓋", "ved": "built", "vpp": "built", "g": "dt"}, {"v": "burst", "kk": "[bɝst]", "zh": "突然爆開", "ved": "burst", "vpp": "burst", "g": "aaa"}, {"v": "buy", "kk": "[baɪ]", "zh": "買", "ved": "bought", "vpp": "bought", "g": "ought"}, {"v": "catch", "kk": "[kætʃ]", "zh": "抓；捉；捕", "ved": "caught", "vpp": "caught", "g": "ought"}, {"v": "choose", "kk": "[tʃuz]", "zh": "選擇", "ved": "chose", "vpp": "chosen", "g": "oen"}, {"v": "come", "kk": "[kʌm]", "zh": "來", "ved": "came", "vpp": "come", "g": "aba"}, {"v": "cost", "kk": "[kɔst]", "zh": "花費", "ved": "cost", "vpp": "cost", "g": "aaa"}, {"v": "cut", "kk": "[kʌt]", "zh": "切", "ved": "cut", "vpp": "cut", "g": "aaa"}, {"v": "deal", "kk": "[dil]", "zh": "處理；交易", "ved": "dealt", "vpp": "dealt", "g": "dt", "trap": "dealt 唸 [dɛlt]，母音縮短"}, {"v": "dig", "kk": "[dɪg]", "zh": "挖", "ved": "dug", "vpp": "dug", "g": "abb"}, {"v": "dive", "kk": "[daɪv]", "zh": "潛水", "ved": "dived / dove", "vpp": "dived", "g": "solo", "trap": "過去式兩種都可：dived 或 dove"}, {"v": "do", "kk": "[du]", "zh": "做", "ved": "did", "vpp": "done", "g": "solo"}, {"v": "draw", "kk": "[drɔ]", "zh": "畫；拉", "ved": "drew", "vpp": "drawn", "g": "ew"}, {"v": "drink", "kk": "[drɪŋk]", "zh": "喝", "ved": "drank", "vpp": "drunk", "g": "iau"}, {"v": "drive", "kk": "[draɪv]", "zh": "駕駛；開車", "ved": "drove", "vpp": "driven", "g": "solo", "trap": "i→o→i+en：drive-drove-driven，rise 同款"}, {"v": "eat", "kk": "[it]", "zh": "吃", "ved": "ate", "vpp": "eaten", "g": "solo"}, {"v": "fall", "kk": "[fɔl]", "zh": "倒下；落下", "ved": "fell", "vpp": "fallen", "g": "solo", "trap": "fall-fell 別跟 fly-flew（飛）搞混"}, {"v": "feed", "kk": "[fid]", "zh": "餵", "ved": "fed", "vpp": "fed", "g": "abb"}, {"v": "feel", "kk": "[fil]", "zh": "感覺", "ved": "felt", "vpp": "felt", "g": "dt"}, {"v": "fight", "kk": "[faɪt]", "zh": "吵架；打架", "ved": "fought", "vpp": "fought", "g": "ought"}, {"v": "find", "kk": "[faɪnd]", "zh": "找到；發現", "ved": "found", "vpp": "found", "g": "abb"}, {"v": "fly", "kk": "[flaɪ]", "zh": "飛", "ved": "flew", "vpp": "flown", "g": "ew"}, {"v": "forget", "kk": "[fɚˋgɛt]", "zh": "忘記", "ved": "forgot", "vpp": "forgotten", "g": "oen"}, {"v": "forgive", "kk": "[fɚˋgɪv]", "zh": "原諒", "ved": "forgave", "vpp": "forgiven", "g": "solo", "trap": "跟 give-gave-given 同款，加 for 而已"}, {"v": "freeze", "kk": "[friz]", "zh": "凍結；冰凍", "ved": "froze", "vpp": "frozen", "g": "oen"}, {"v": "get", "kk": "[gɛt]", "zh": "得到", "ved": "got", "vpp": "gotten", "g": "oen", "trap": "美式第三態 gotten（課本用這個）"}, {"v": "give", "kk": "[gɪv]", "zh": "給予", "ved": "gave", "vpp": "given", "g": "solo"}, {"v": "go", "kk": "[go]", "zh": "去", "ved": "went", "vpp": "gone", "g": "solo", "trap": "went 是完全不同的字，必背"}, {"v": "grow", "kk": "[gro]", "zh": "成長", "ved": "grew", "vpp": "grown", "g": "ew"}, {"v": "hang", "kk": "[hæŋ]", "zh": "吊；掛", "ved": "hung", "vpp": "hung", "g": "abb"}, {"v": "have", "kk": "[hæv]", "zh": "擁有；用餐", "ved": "had", "vpp": "had", "g": "aid"}, {"v": "hear", "kk": "[hɪr]", "zh": "聽", "ved": "heard", "vpp": "heard", "g": "abb", "trap": "heard 唸 [hɝd]，不是 [hɪrd]"}, {"v": "hide", "kk": "[haɪd]", "zh": "躲藏", "ved": "hid", "vpp": "hidden", "g": "itten"}, {"v": "hit", "kk": "[hɪt]", "zh": "打；侵襲", "ved": "hit", "vpp": "hit", "g": "aaa"}, {"v": "hold", "kk": "[hold]", "zh": "握住；支撐", "ved": "held", "vpp": "held", "g": "abb"}, {"v": "hurt", "kk": "[hɝt]", "zh": "傷害；痛", "ved": "hurt", "vpp": "hurt", "g": "aaa"}, {"v": "keep", "kk": "[kip]", "zh": "保持", "ved": "kept", "vpp": "kept", "g": "ept"}, {"v": "know", "kk": "[no]", "zh": "知道", "ved": "knew", "vpp": "known", "g": "ew"}, {"v": "lay", "kk": "[le]", "zh": "放置", "ved": "laid", "vpp": "laid", "g": "aid", "trap": "別跟 lie（躺）的過去式 lay 搞混！"}, {"v": "lead", "kk": "[lid]", "zh": "領導", "ved": "led", "vpp": "led", "g": "abb"}, {"v": "leave", "kk": "[liv]", "zh": "離開", "ved": "left", "vpp": "left", "g": "dt", "trap": "left 也是「左邊」，同拼字"}, {"v": "lend", "kk": "[lɛnd]", "zh": "借出", "ved": "lent", "vpp": "lent", "g": "dt"}, {"v": "let", "kk": "[lɛt]", "zh": "允許", "ved": "let", "vpp": "let", "g": "aaa"}, {"v": "lie", "kk": "[laɪ]", "zh": "說謊；躺", "ved": "lied（說謊）/ lay（躺）", "vpp": "lied（說謊）/ lain（躺）", "g": "solo", "trap": "一字兩義兩套變化：說謊 lie-lied-lied；躺 lie-lay-lain"}, {"v": "light", "kk": "[laɪt]", "zh": "點亮", "ved": "lit / lighted", "vpp": "lit / lighted", "g": "abb", "trap": "兩種都可：lit 或 lighted"}, {"v": "lose", "kk": "[luz]", "zh": "失去", "ved": "lost", "vpp": "lost", "g": "abb"}, {"v": "make", "kk": "[mek]", "zh": "製造", "ved": "made", "vpp": "made", "g": "aid"}, {"v": "mean", "kk": "[min]", "zh": "意思…是", "ved": "meant", "vpp": "meant", "g": "dt", "trap": "meant 唸 [mɛnt]，母音縮短"}, {"v": "meet", "kk": "[mit]", "zh": "見面；相會", "ved": "met", "vpp": "met", "g": "abb"}, {"v": "pay", "kk": "[pe]", "zh": "支付", "ved": "paid", "vpp": "paid", "g": "aid"}, {"v": "put", "kk": "[pʊt]", "zh": "放置", "ved": "put", "vpp": "put", "g": "aaa"}, {"v": "quit", "kk": "[kwɪt]", "zh": "放棄；辭", "ved": "quit", "vpp": "quit", "g": "aaa"}, {"v": "read", "kk": "[rid]", "zh": "閱讀", "ved": "read", "vpp": "read", "g": "aaa", "trap": "拼法三態全同，但過去式/過去分詞唸 [rɛd]！"}, {"v": "ride", "kk": "[raɪd]", "zh": "騎乘", "ved": "rode", "vpp": "ridden", "g": "itten"}, {"v": "ring", "kk": "[rɪŋ]", "zh": "鳴響", "ved": "rang", "vpp": "rung", "g": "iau"}, {"v": "rise", "kk": "[raɪz]", "zh": "上升", "ved": "rose", "vpp": "risen", "g": "solo", "trap": "i→o→i+en，跟 drive 同款；rose 也是「玫瑰」"}, {"v": "run", "kk": "[rʌn]", "zh": "跑；經營", "ved": "ran", "vpp": "run", "g": "aba"}, {"v": "say", "kk": "[se]", "zh": "說", "ved": "said", "vpp": "said", "g": "aid", "trap": "said 唸 [sɛd]，不是 [sed]"}, {"v": "see", "kk": "[si]", "zh": "看", "ved": "saw", "vpp": "seen", "g": "solo", "trap": "saw 也是「鋸子」"}, {"v": "seek", "kk": "[sik]", "zh": "尋找", "ved": "sought", "vpp": "sought", "g": "ought"}, {"v": "sell", "kk": "[sɛl]", "zh": "賣", "ved": "sold", "vpp": "sold", "g": "aid"}, {"v": "send", "kk": "[sɛnd]", "zh": "寄；送", "ved": "sent", "vpp": "sent", "g": "dt"}, {"v": "set", "kk": "[sɛt]", "zh": "安置；安裝", "ved": "set", "vpp": "set", "g": "aaa"}, {"v": "shake", "kk": "[ʃek]", "zh": "搖動", "ved": "shook", "vpp": "shaken", "g": "solo", "trap": "跟 take-took-taken 同款"}, {"v": "shine", "kk": "[ʃaɪn]", "zh": "照耀；擦亮", "ved": "shone（照耀）/ shined（擦亮）", "vpp": "shone（照耀）/ shined（擦亮）", "g": "solo", "trap": "照耀用 shone、擦亮用 shined"}, {"v": "shoot", "kk": "[ʃut]", "zh": "發射", "ved": "shot", "vpp": "shot", "g": "abb"}, {"v": "show", "kk": "[ʃo]", "zh": "表示；展現", "ved": "showed", "vpp": "shown", "g": "solo", "trap": "過去式規則(showed)、第三態不規則(shown)"}, {"v": "shut", "kk": "[ʃʌt]", "zh": "關閉", "ved": "shut", "vpp": "shut", "g": "aaa"}, {"v": "sing", "kk": "[sɪŋ]", "zh": "唱歌", "ved": "sang", "vpp": "sung", "g": "iau"}, {"v": "sink", "kk": "[sɪŋk]", "zh": "下沉", "ved": "sank", "vpp": "sunk", "g": "iau"}, {"v": "sit", "kk": "[sɪt]", "zh": "坐", "ved": "sat", "vpp": "sat", "g": "abb"}, {"v": "sleep", "kk": "[slip]", "zh": "睡", "ved": "slept", "vpp": "slept", "g": "ept"}, {"v": "slide", "kk": "[slaɪd]", "zh": "滑；滑動", "ved": "slid", "vpp": "slid", "g": "abb"}, {"v": "speak", "kk": "[spik]", "zh": "說；演講", "ved": "spoke", "vpp": "spoken", "g": "oen"}, {"v": "spell", "kk": "[spɛl]", "zh": "拼字", "ved": "spelled / spelt", "vpp": "spelled / spelt", "g": "solo", "trap": "兩種都可：spelled 或 spelt"}, {"v": "spend", "kk": "[spɛnd]", "zh": "花費", "ved": "spent", "vpp": "spent", "g": "dt"}, {"v": "spread", "kk": "[sprɛd]", "zh": "展開；擴散", "ved": "spread", "vpp": "spread", "g": "aaa"}, {"v": "stand", "kk": "[stænd]", "zh": "站立", "ved": "stood", "vpp": "stood", "g": "aid"}, {"v": "steal", "kk": "[stil]", "zh": "偷竊", "ved": "stole", "vpp": "stolen", "g": "oen"}, {"v": "strike", "kk": "[straɪk]", "zh": "毆打；擊", "ved": "struck", "vpp": "struck / stricken", "g": "abb", "trap": "第三態兩種：struck 或 stricken"}, {"v": "swear", "kk": "[swɛr]", "zh": "發誓", "ved": "swore", "vpp": "sworn", "g": "orn"}, {"v": "sweep", "kk": "[swip]", "zh": "掃；掃除", "ved": "swept", "vpp": "swept", "g": "ept"}, {"v": "swim", "kk": "[swɪm]", "zh": "游泳", "ved": "swam", "vpp": "swum", "g": "iau"}, {"v": "swing", "kk": "[swɪŋ]", "zh": "搖擺；擺動", "ved": "swung", "vpp": "swung", "g": "abb", "trap": "不是 i-a-u！直接 swung-swung"}, {"v": "take", "kk": "[tek]", "zh": "拿取", "ved": "took", "vpp": "taken", "g": "solo"}, {"v": "teach", "kk": "[titʃ]", "zh": "教導", "ved": "taught", "vpp": "taught", "g": "ought"}, {"v": "tear", "kk": "[tɛr]", "zh": "撕；扯開", "ved": "tore", "vpp": "torn", "g": "orn"}, {"v": "tell", "kk": "[tɛl]", "zh": "告訴", "ved": "told", "vpp": "told", "g": "aid"}, {"v": "think", "kk": "[θɪŋk]", "zh": "想；認為", "ved": "thought", "vpp": "thought", "g": "ought"}, {"v": "throw", "kk": "[θro]", "zh": "丟", "ved": "threw", "vpp": "thrown", "g": "ew"}, {"v": "understand", "kk": "[͵ʌndɚˋstænd]", "zh": "懂", "ved": "understood", "vpp": "understood", "g": "aid"}, {"v": "upset", "kk": "[ʌpˋsɛt]", "zh": "使煩惱", "ved": "upset", "vpp": "upset", "g": "aaa"}, {"v": "wake", "kk": "[wek]", "zh": "醒來", "ved": "woke", "vpp": "woken", "g": "oen"}, {"v": "wear", "kk": "[wɛr]", "zh": "穿著", "ved": "wore", "vpp": "worn", "g": "orn"}, {"v": "weave", "kk": "[wiv]", "zh": "編織", "ved": "wove", "vpp": "woven", "g": "oen"}, {"v": "weep", "kk": "[wip]", "zh": "哭泣", "ved": "wept", "vpp": "wept", "g": "ept"}, {"v": "wet", "kk": "[wɛt]", "zh": "弄濕", "ved": "wet", "vpp": "wet", "g": "aaa"}, {"v": "win", "kk": "[wɪn]", "zh": "贏得", "ved": "won", "vpp": "won", "g": "abb", "trap": "won 唸 [wʌn]，跟 one 同音"}, {"v": "write", "kk": "[raɪt]", "zh": "寫", "ved": "wrote", "vpp": "written", "g": "itten", "trap": "written 要雙寫 tt"}]};
+const V=DATA.verbs, G=DATA.groups;
+const gmap=Object.fromEntries(G.map(g=>[g.id,g]));
+const byG=id=>V.filter(v=>v.g===id);
+document.getElementById('subline').textContent=
+ `${V.length} 個不規則動詞 ‧ ${G.length} 個規律小隊 ‧ 來源：${DATA.meta.source_desc}`;
+
+/* ---------- 進度存檔 ---------- */
+const KEY='sf_'+DATA.meta.title;
+let P={};try{P=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+const save=()=>localStorage.setItem(KEY,JSON.stringify(P));
+const rec=v=>P[v]||(P[v]={box:0,star:0});
+
+/* ---------- 導覽 ---------- */
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('on'));
+ b.classList.add('on');
+ ['learn','flash','quiz'].forEach(m=>
+   document.getElementById('pg-'+m).classList.toggle('hidden',m!==b.dataset.m));
+ if(b.dataset.m==='learn')renderLearn();
+});
+
+/* ---------- 學規律 ---------- */
+function renderLearn(){
+ const el=document.getElementById('pg-learn');el.innerHTML='';
+ G.forEach(g=>{
+  const vs=byG(g.id);if(!vs.length)return;
+  const done=vs.filter(v=>rec(v.v).box>=2).length;
+  const c=document.createElement('div');c.className='gcard';
+  c.innerHTML=`<div class="ghead"><span class="gdot" style="background:${g.color}"></span>
+    <span class="gname">${g.name}</span><span class="gnum">${done}/${vs.length} 熟</span></div>
+   <div class="ghint">💡 ${g.hint}</div>
+   <div class="gprog"><i style="width:${vs.length?Math.round(done/vs.length*100):0}%"></i></div>
+   <div class="gbody">${vs.map(v=>`
+    <div class="vrow">
+      <span class="vv">${v.v}</span><span class="vkk">${v.kk}</span>
+      <span class="vzh">${v.zh}</span>
+      <span class="star ${rec(v.v).star?'on':''}" data-v="${v.v}">★</span>
+      <span class="vforms">→ <b>${v.ved}</b> → <b>${v.vpp}</b></span>
+      ${v.trap?`<span class="vtrap">⚠️ ${v.trap}</span>`:''}
+    </div>`).join('')}</div>`;
+  c.querySelector('.ghead').onclick=()=>c.classList.toggle('open');
+  c.querySelectorAll('.star').forEach(s=>s.onclick=e=>{
+    e.stopPropagation();const r=rec(s.dataset.v);r.star=r.star?0:1;save();
+    s.classList.toggle('on');});
+  el.appendChild(c);
+ });
+}
+renderLearn();
+
+/* ---------- 翻卡自測 ---------- */
+let deck=[],idx=0,scope='all';
+function renderFlashHome(){
+ const el=document.getElementById('pg-flash');
+ const opts=[['all','全部'],['weak','不熟優先'],['star','★星號'],...G.map(g=>[g.id,g.name])];
+ el.innerHTML=`<div class="pickbar">${opts.map(([id,n])=>
+   `<span class="pick ${id===scope?'on':''}" data-s="${id}">${n}</span>`).join('')}</div>
+  <div id="flashzone"></div>`;
+ el.querySelectorAll('.pick').forEach(p=>p.onclick=()=>{scope=p.dataset.s;renderFlashHome();startDeck();});
+ startDeck();
+}
+function pool(){
+ if(scope==='all')return[...V];
+ if(scope==='star')return V.filter(v=>rec(v.v).star);
+ if(scope==='weak')return[...V].sort((a,b)=>rec(a.v).box-rec(b.v).box).slice(0,20);
+ return byG(scope);
+}
+function startDeck(){
+ deck=pool();for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));
+   [deck[i],deck[j]]=[deck[j],deck[i]];}
+ idx=0;showCard();
+}
+function showCard(){
+ const z=document.getElementById('flashzone');
+ if(!deck.length){z.innerHTML=`<div class="donebox"><div class="big">🤷</div>
+   <p>這個範圍沒有卡片（先去按幾顆★吧）</p></div>`;return;}
+ if(idx>=deck.length){
+  z.innerHTML=`<div class="donebox"><div class="big">🎉</div>
+   <p>這一輪 ${deck.length} 張完成！<br>答「不熟」的卡會自動排進下一輪的「不熟優先」。</p>
+   <span class="again" id="againBtn">再來一輪</span></div>`;
+  document.getElementById('againBtn').onclick=startDeck;return;
+ }
+ const v=deck[idx];
+ z.innerHTML=`
+  <div class="flashwrap"><div class="flash" id="fc">
+   <div class="face front"><div class="fv">${v.v}</div><div class="fkk">${v.kk}</div>
+     <div class="fzh">${v.zh}</div><div class="ftip">先在心裡唸出三態，再點卡片對答案</div></div>
+   <div class="face back">
+     <div class="bform">過去式 Ved<b>${v.ved}</b></div>
+     <div class="bform">過去分詞 Vp.p.<b>${v.vpp}</b></div>
+     ${v.trap?`<div class="btrap">⚠️ ${v.trap}</div>`:''}</div>
+  </div></div>
+  <div class="gradebar hidden" id="gb">
+   <div class="gbtn no">😵 不熟</div><div class="gbtn yes">😎 我會了</div></div>
+  <div class="fmeta"><span>${gmap[v.g].name}</span><span>${idx+1} / ${deck.length}</span></div>`;
+ const fc=document.getElementById('fc'),gb=document.getElementById('gb');
+ fc.onclick=()=>{fc.classList.toggle('flip');gb.classList.remove('hidden');};
+ gb.querySelector('.no').onclick=()=>{const r=rec(v.v);r.box=0;save();
+   deck.push(v);idx++;showCard();};
+ gb.querySelector('.yes').onclick=()=>{const r=rec(v.v);r.box=Math.min(3,r.box+1);save();
+   idx++;showCard();};
+}
+renderFlashHome();
+
+/* ---------- 小考 ---------- */
+const QN=10;let quiz=[],qi=0,qscore=0,qwrong=[];
+function makeQuiz(){
+ const vs=[...V].sort(()=>Math.random()-.5).slice(0,QN);
+ quiz=vs.map(v=>{
+  const askPP=Math.random()<.5;
+  const ans=askPP?v.vpp:v.ved;
+  const others=V.filter(x=>x.v!==v.v).map(x=>askPP?x.vpp:x.ved)
+    .filter(f=>f!==ans);
+  const dis=[...new Set(others)].sort(()=>Math.random()-.5).slice(0,3);
+  const opts=[ans,...dis].sort(()=>Math.random()-.5);
+  return{v,askPP,ans,opts};
+ });
+ qi=0;qscore=0;qwrong=[];showQ();
+}
+function showQ(){
+ const el=document.getElementById('pg-quiz');
+ if(qi>=quiz.length){
+  const pct=Math.round(qscore/quiz.length*100);
+  el.innerHTML=`<div class="scorebox"><div class="n">${qscore}/${quiz.length}</div>
+   <div class="msg">${pct===100?'太神啦！滿分 🏆':pct>=70?'不錯喔，再衝一次更穩 💪':'沒關係，錯的都是寶，看下面複習 📖'}</div>
+   ${qwrong.length?`<div class="review">${qwrong.map(q=>`
+     <div class="vrow"><span class="vv">${q.v.v}</span><span class="vzh">${q.v.zh}</span>
+     <span class="vforms">→ <b>${q.v.ved}</b> → <b>${q.v.vpp}</b></span>
+     ${q.v.trap?`<span class="vtrap">⚠️ ${q.v.trap}</span>`:''}</div>`).join('')}</div>`:''}
+   <span class="again" id="qAgain">再考一次</span></div>`;
+  document.getElementById('qAgain').onclick=makeQuiz;return;
+ }
+ const q=quiz[qi];
+ el.innerHTML=`<div class="qhead"><span>第 ${qi+1} / ${quiz.length} 題</span>
+   <span>答對 ${qscore}</span></div>
+  <div class="qbar"><i style="width:${qi/quiz.length*100}%"></i></div>
+  <div class="qcard"><div class="qq">${q.askPP?'過去分詞 Vp.p.':'過去式 Ved'} 是哪個？</div>
+   <div class="qv">${q.v.v}</div><div class="qzh">${q.v.kk}　${q.v.zh}</div>
+   <div class="opts">${q.opts.map(o=>`<div class="opt" data-o="${o.replace(/"/g,'&quot;')}">${o}</div>`).join('')}</div>
+   <div id="qfb"></div></div>`;
+ el.querySelectorAll('.opt').forEach(op=>op.onclick=()=>{
+  if(el.dataset.lock)return;el.dataset.lock=1;
+  const pick=op.dataset.o,right=pick===q.ans;
+  el.querySelectorAll('.opt').forEach(x=>{
+    if(x.dataset.o===q.ans)x.classList.add('right');
+    else if(x===op)x.classList.add('wrong');else x.classList.add('dim');});
+  if(right){qscore++;const r=rec(q.v.v);r.box=Math.min(3,r.box+1);save();}
+  else{qwrong.push(q);const r=rec(q.v.v);r.box=0;save();}
+  document.getElementById('qfb').innerHTML=
+   `${q.v.trap?`<div class="qtrap">⚠️ ${q.v.trap}</div>`:''}
+    <span class="qnext" id="qn">${qi+1===quiz.length?'看成績':'下一題'} →</span>`;
+  document.getElementById('qn').onclick=()=>{delete el.dataset.lock;qi++;showQ();};
+ });
+}
+makeQuiz();
+</script>
+</body>
+</html>

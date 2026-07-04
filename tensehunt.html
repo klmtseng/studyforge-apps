@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>動詞時態獵人</title>
+<style>
+ *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+ :root{--bg:#0f1420;--card:#1a2130;--card2:#232c3f;--tx:#e8edf6;--dim:#95a0b5;--line:#2c3547;
+   --ok:#28c76f;--bad:#ea5455;--warn:#ff9f43;--blue:#4f8cff}
+ body{font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;
+   background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh}
+ .warnbar{background:#5b2530;color:#fff;padding:12px;text-align:center;font-size:13px}
+ header{padding:16px 16px 8px;text-align:center}
+ h1{font-size:19px}
+ .sub{color:var(--dim);font-size:12px;margin-top:2px}
+ main{padding:8px 14px 50px;max-width:640px;margin:0 auto}
+ .target{background:linear-gradient(160deg,#1c2740,#171e2e);border:1px solid var(--line);
+   border-radius:16px;padding:16px;text-align:center;margin-top:10px;position:sticky;top:8px;z-index:5}
+ .tlabel{font-size:12px;color:var(--dim)}
+ .tv{font-size:30px;font-weight:800;margin-top:2px}
+ .tzh{color:var(--dim);font-size:13.5px;margin-top:2px}
+ .tprog{display:flex;justify-content:space-between;font-size:11.5px;color:var(--dim);margin-top:8px}
+ .mission{margin:12px 2px 4px;font-size:13px;color:#cdd6e6}
+ .sent{background:var(--card);border:1px solid var(--line);border-radius:14px;
+   padding:13px 14px;margin-top:10px}
+ .sent.done{opacity:.82}
+ .sent.done.good{border-color:var(--ok)}
+ .sent.done.miss{border-color:var(--bad)}
+ .words{font-size:17px;line-height:2}
+ .w{cursor:pointer;border-radius:6px;padding:1px 3px}
+ .w:active{background:var(--card2)}
+ .w.hit{background:#1e5138;color:#fff;font-weight:700}
+ .w.no{background:#5b2530;color:#fff}
+ .w.reveal{background:rgba(255,159,67,.25);border-bottom:2px solid var(--warn);font-weight:700}
+ .nonebtn{margin-top:8px;display:inline-block;font-size:12.5px;color:var(--dim);
+   border:1px dashed var(--line);border-radius:16px;padding:5px 12px;cursor:pointer;user-select:none}
+ .nonebtn.hit{background:#1e5138;color:#fff;border-style:solid}
+ .nonebtn.no{background:#5b2530;color:#fff;border-style:solid}
+ .tensepick{margin-top:10px;display:none;gap:8px}
+ .tensepick.show{display:grid}
+ .tp{padding:11px;border-radius:11px;background:var(--card2);border:1px solid var(--line);
+   text-align:center;font-size:14px;font-weight:600;cursor:pointer;user-select:none}
+ .tp small{display:block;font-weight:400;font-size:10.5px;color:var(--dim)}
+ .tp.right{background:#1e5138;border-color:var(--ok)}
+ .tp.wrong{background:#5b2530;border-color:var(--bad)}
+ .fb{margin-top:9px;font-size:12.5px;border-radius:8px;padding:7px 10px;display:none}
+ .fb.show{display:block}
+ .fb.good{background:rgba(40,199,111,.12);color:#7fe0ab}
+ .fb.bad{background:rgba(234,84,85,.12);color:#ff9e9e}
+ .nextbar{text-align:center;margin-top:16px}
+ .nextbtn{display:inline-block;padding:13px 34px;border-radius:14px;background:var(--blue);
+   color:#fff;font-weight:700;cursor:pointer;user-select:none}
+ .scorebox{text-align:center;padding:36px 16px}
+ .scorebox .n{font-size:52px;font-weight:800}
+ .scorebox .msg{margin-top:6px;color:var(--dim);font-size:14px}
+ footer{text-align:center;color:#525d72;font-size:10.5px;padding:14px}
+</style>
+</head>
+<body>
+<noscript><div class="warnbar">⚠️ 這個 App 需要 JavaScript。請把檔案下載後用瀏覽器
+（Chrome / Safari / Firefox）開啟，不要用聊天軟體的預覽視窗。</div></noscript>
+<div id="errbar" class="warnbar" style="display:none"></div>
+<header>
+ <h1>🎯 動詞時態獵人</h1>
+ <div class="sub" id="subline"></div>
+</header>
+<main id="main"></main>
+<footer>來源：已驗證三態表＋自撰七年級程度例句 ‧ 資料驗證：Claude (strong model) 自撰並逐句核對時態 2026-07-04 ‧ study-forge v2</footer>
+<script>
+window.onerror=function(m){var b=document.getElementById('errbar');
+ b.style.display='block';b.textContent='⚠️ 程式出錯了：'+m+'（請截圖回報）';};
+const DATA={"meta": {"title": "動詞時態獵人", "grade": "七年級", "source_pdf": "（本機教材，公開版不含）", "source_desc": "已驗證三態表＋自撰七年級程度例句", "verbs_ref": "verbs_grade7_v1.json", "human_verified": true, "verified_by": "Claude (strong model) 自撰並逐句核對時態 2026-07-04", "schema_version": 2, "expected_count": 90}, "items": [{"verb": "eat", "sentences": [{"text": "Tom eats breakfast at seven every day.", "form": "eats", "tense": "present"}, {"text": "We ate pizza last night.", "form": "ate", "tense": "past"}, {"text": "Have you eaten lunch yet?", "form": "eaten", "tense": "pp"}]}, {"verb": "go", "sentences": [{"text": "My brother goes to school by bus.", "form": "goes", "tense": "present"}, {"text": "They went to Taipei last weekend.", "form": "went", "tense": "past"}, {"text": "Dad has gone to work already.", "form": "gone", "tense": "pp"}]}, {"verb": "see", "sentences": [{"text": "I see a bird in the tree.", "form": "see", "tense": "present"}, {"text": "We saw a movie yesterday.", "form": "saw", "tense": "past"}, {"text": "I have never seen snow before.", "form": "seen", "tense": "pp"}]}, {"verb": "take", "sentences": [{"text": "She takes the MRT to school.", "form": "takes", "tense": "present"}, {"text": "He took some photos in the park.", "form": "took", "tense": "past"}, {"text": "Someone has taken my seat.", "form": "taken", "tense": "pp"}]}, {"verb": "make", "sentences": [{"text": "Mom makes dinner for us every day.", "form": "makes", "tense": "present"}, {"text": "The students made a card for their teacher.", "form": "made", "tense": "past"}, {"text": "Have you made your bed?", "form": "made", "tense": "pp"}]}, {"verb": "come", "sentences": [{"text": "The bus comes every ten minutes.", "form": "comes", "tense": "present"}, {"text": "My cousin came to see us last Sunday.", "form": "came", "tense": "past"}, {"text": "Spring has come at last.", "form": "come", "tense": "pp"}]}, {"verb": "run", "sentences": [{"text": "He runs very fast.", "form": "runs", "tense": "present"}, {"text": "She ran to the station this morning.", "form": "ran", "tense": "past"}, {"text": "They have run five kilometers today.", "form": "run", "tense": "pp"}]}, {"verb": "give", "sentences": [{"text": "My parents give me pocket money every week.", "form": "give", "tense": "present"}, {"text": "He gave me a birthday gift.", "form": "gave", "tense": "past"}, {"text": "The teacher has given us a lot of homework.", "form": "given", "tense": "pp"}]}, {"verb": "get", "sentences": [{"text": "I get up at six thirty.", "form": "get", "tense": "present"}, {"text": "She got a letter from her pen pal.", "form": "got", "tense": "past"}, {"text": "It has gotten dark outside.", "form": "gotten", "tense": "pp"}]}, {"verb": "buy", "sentences": [{"text": "Dad buys fruit on his way home.", "form": "buys", "tense": "present"}, {"text": "I bought a new pen at the bookstore.", "form": "bought", "tense": "past"}, {"text": "She has bought tickets for the movie.", "form": "bought", "tense": "pp"}]}, {"verb": "bring", "sentences": [{"text": "Please bring your umbrella tomorrow.", "form": "bring", "tense": "present"}, {"text": "He brought his dog to the park.", "form": "brought", "tense": "past"}, {"text": "Have you brought your homework?", "form": "brought", "tense": "pp"}]}, {"verb": "think", "sentences": [{"text": "I think English is fun.", "form": "think", "tense": "present"}, {"text": "She thought the test was easy.", "form": "thought", "tense": "past"}, {"text": "Have you thought about the question?", "form": "thought", "tense": "pp"}]}, {"verb": "teach", "sentences": [{"text": "Ms. Lin teaches us English.", "form": "teaches", "tense": "present"}, {"text": "My grandpa taught me how to fish.", "form": "taught", "tense": "past"}, {"text": "She has taught here for ten years.", "form": "taught", "tense": "pp"}]}, {"verb": "catch", "sentences": [{"text": "Cats catch mice.", "form": "catch", "tense": "present"}, {"text": "He caught a big fish yesterday.", "form": "caught", "tense": "past"}, {"text": "The police have caught the thief.", "form": "caught", "tense": "pp"}]}, {"verb": "feel", "sentences": [{"text": "I feel happy today.", "form": "feel", "tense": "present"}, {"text": "She felt tired after the game.", "form": "felt", "tense": "past"}, {"text": "He has never felt so excited.", "form": "felt", "tense": "pp"}]}, {"verb": "find", "sentences": [{"text": "I often find cats in this park.", "form": "find", "tense": "present"}, {"text": "She found her keys under the sofa.", "form": "found", "tense": "past"}, {"text": "Have you found your phone yet?", "form": "found", "tense": "pp"}]}, {"verb": "hear", "sentences": [{"text": "I hear music from the next room.", "form": "hear", "tense": "present"}, {"text": "We heard a strange sound last night.", "form": "heard", "tense": "past"}, {"text": "Have you heard the good news?", "form": "heard", "tense": "pp"}]}, {"verb": "keep", "sentences": [{"text": "He keeps his room clean.", "form": "keeps", "tense": "present"}, {"text": "She kept the secret for years.", "form": "kept", "tense": "past"}, {"text": "I have kept all your letters.", "form": "kept", "tense": "pp"}]}, {"verb": "know", "sentences": [{"text": "I know the answer.", "form": "know", "tense": "present"}, {"text": "He knew her name already.", "form": "knew", "tense": "past"}, {"text": "We have known each other since first grade.", "form": "known", "tense": "pp"}]}, {"verb": "leave", "sentences": [{"text": "The train leaves at nine.", "form": "leaves", "tense": "present"}, {"text": "She left her bag on the bus.", "form": "left", "tense": "past"}, {"text": "They have just left the house.", "form": "left", "tense": "pp"}]}, {"verb": "meet", "sentences": [{"text": "We meet at the library every Friday.", "form": "meet", "tense": "present"}, {"text": "I met my old friend on the street.", "form": "met", "tense": "past"}, {"text": "Have we met before?", "form": "met", "tense": "pp"}]}, {"verb": "pay", "sentences": [{"text": "I pay for lunch with my card.", "form": "pay", "tense": "present"}, {"text": "She paid two hundred dollars for the shoes.", "form": "paid", "tense": "past"}, {"text": "Dad has already paid the bill.", "form": "paid", "tense": "pp"}]}, {"verb": "read", "sentences": [{"text": "She reads comic books every night.", "form": "reads", "tense": "present"}, {"text": "I read this novel last summer.", "form": "read", "tense": "past"}, {"text": "He has read the story three times.", "form": "read", "tense": "pp"}]}, {"verb": "say", "sentences": [{"text": "People say the movie is great.", "form": "say", "tense": "present"}, {"text": "He said sorry to his mom.", "form": "said", "tense": "past"}, {"text": "She has said it many times.", "form": "said", "tense": "pp"}]}, {"verb": "sell", "sentences": [{"text": "That store sells cheap drinks.", "form": "sells", "tense": "present"}, {"text": "He sold his old bike last month.", "form": "sold", "tense": "past"}, {"text": "They have sold all the tickets.", "form": "sold", "tense": "pp"}]}, {"verb": "sing", "sentences": [{"text": "She sings very well.", "form": "sings", "tense": "present"}, {"text": "We sang songs at the party.", "form": "sang", "tense": "past"}, {"text": "He has sung this song on TV.", "form": "sung", "tense": "pp"}]}, {"verb": "swim", "sentences": [{"text": "Fish swim in the sea.", "form": "swim", "tense": "present"}, {"text": "They swam in the river last summer.", "form": "swam", "tense": "past"}, {"text": "She has swum across the lake.", "form": "swum", "tense": "pp"}]}, {"verb": "tell", "sentences": [{"text": "Please tell me the truth.", "form": "tell", "tense": "present"}, {"text": "Grandma told us a funny story.", "form": "told", "tense": "past"}, {"text": "I have told you three times!", "form": "told", "tense": "pp"}]}, {"verb": "win", "sentences": [{"text": "Our team wins every game.", "form": "wins", "tense": "present"}, {"text": "She won first prize last year.", "form": "won", "tense": "past"}, {"text": "They have won three games this month.", "form": "won", "tense": "pp"}]}, {"verb": "write", "sentences": [{"text": "He writes a diary every day.", "form": "writes", "tense": "present"}, {"text": "She wrote a letter to her teacher.", "form": "wrote", "tense": "past"}, {"text": "I have written my name on the card.", "form": "written", "tense": "pp"}]}], "verbinfo": {"be": {"v": "be", "kk": "[bi]", "zh": "是；存在", "ved": "was / were", "vpp": "been", "g": "solo", "trap": "唯一有兩個過去式：I/he/she/it→was，you/we/they→were"}, "bear": {"v": "bear", "kk": "[bɛr]", "zh": "生（孩子）；負擔", "ved": "bore", "vpp": "born / borne", "g": "orn", "trap": "「出生」用 born（He was born…）；「承擔」用 borne"}, "beat": {"v": "beat", "kk": "[bit]", "zh": "打", "ved": "beat", "vpp": "beaten", "g": "solo", "trap": "前兩態相同，第三態才加 en：beat-beat-beaten"}, "become": {"v": "become", "kk": "[bɪˋkʌm]", "zh": "變成", "ved": "became", "vpp": "become", "g": "aba"}, "begin": {"v": "begin", "kk": "[bɪˋgɪn]", "zh": "開始", "ved": "began", "vpp": "begun", "g": "iau"}, "bend": {"v": "bend", "kk": "[bɛnd]", "zh": "彎曲", "ved": "bent", "vpp": "bent", "g": "dt"}, "bite": {"v": "bite", "kk": "[baɪt]", "zh": "咬", "ved": "bit", "vpp": "bitten", "g": "itten"}, "blow": {"v": "blow", "kk": "[blo]", "zh": "吹", "ved": "blew", "vpp": "blown", "g": "ew"}, "break": {"v": "break", "kk": "[brek]", "zh": "打破；切斷", "ved": "broke", "vpp": "broken", "g": "oen"}, "bring": {"v": "bring", "kk": "[brɪŋ]", "zh": "帶來", "ved": "brought", "vpp": "brought", "g": "ought"}, "broadcast": {"v": "broadcast", "kk": "[ˋbrɔd͵kæst]", "zh": "廣播", "ved": "broadcast", "vpp": "broadcast", "g": "aaa"}, "build": {"v": "build", "kk": "[bɪld]", "zh": "建造；蓋", "ved": "built", "vpp": "built", "g": "dt"}, "burst": {"v": "burst", "kk": "[bɝst]", "zh": "突然爆開", "ved": "burst", "vpp": "burst", "g": "aaa"}, "buy": {"v": "buy", "kk": "[baɪ]", "zh": "買", "ved": "bought", "vpp": "bought", "g": "ought"}, "catch": {"v": "catch", "kk": "[kætʃ]", "zh": "抓；捉；捕", "ved": "caught", "vpp": "caught", "g": "ought"}, "choose": {"v": "choose", "kk": "[tʃuz]", "zh": "選擇", "ved": "chose", "vpp": "chosen", "g": "oen"}, "come": {"v": "come", "kk": "[kʌm]", "zh": "來", "ved": "came", "vpp": "come", "g": "aba"}, "cost": {"v": "cost", "kk": "[kɔst]", "zh": "花費", "ved": "cost", "vpp": "cost", "g": "aaa"}, "cut": {"v": "cut", "kk": "[kʌt]", "zh": "切", "ved": "cut", "vpp": "cut", "g": "aaa"}, "deal": {"v": "deal", "kk": "[dil]", "zh": "處理；交易", "ved": "dealt", "vpp": "dealt", "g": "dt", "trap": "dealt 唸 [dɛlt]，母音縮短"}, "dig": {"v": "dig", "kk": "[dɪg]", "zh": "挖", "ved": "dug", "vpp": "dug", "g": "abb"}, "dive": {"v": "dive", "kk": "[daɪv]", "zh": "潛水", "ved": "dived / dove", "vpp": "dived", "g": "solo", "trap": "過去式兩種都可：dived 或 dove"}, "do": {"v": "do", "kk": "[du]", "zh": "做", "ved": "did", "vpp": "done", "g": "solo"}, "draw": {"v": "draw", "kk": "[drɔ]", "zh": "畫；拉", "ved": "drew", "vpp": "drawn", "g": "ew"}, "drink": {"v": "drink", "kk": "[drɪŋk]", "zh": "喝", "ved": "drank", "vpp": "drunk", "g": "iau"}, "drive": {"v": "drive", "kk": "[draɪv]", "zh": "駕駛；開車", "ved": "drove", "vpp": "driven", "g": "solo", "trap": "i→o→i+en：drive-drove-driven，rise 同款"}, "eat": {"v": "eat", "kk": "[it]", "zh": "吃", "ved": "ate", "vpp": "eaten", "g": "solo"}, "fall": {"v": "fall", "kk": "[fɔl]", "zh": "倒下；落下", "ved": "fell", "vpp": "fallen", "g": "solo", "trap": "fall-fell 別跟 fly-flew（飛）搞混"}, "feed": {"v": "feed", "kk": "[fid]", "zh": "餵", "ved": "fed", "vpp": "fed", "g": "abb"}, "feel": {"v": "feel", "kk": "[fil]", "zh": "感覺", "ved": "felt", "vpp": "felt", "g": "dt"}, "fight": {"v": "fight", "kk": "[faɪt]", "zh": "吵架；打架", "ved": "fought", "vpp": "fought", "g": "ought"}, "find": {"v": "find", "kk": "[faɪnd]", "zh": "找到；發現", "ved": "found", "vpp": "found", "g": "abb"}, "fly": {"v": "fly", "kk": "[flaɪ]", "zh": "飛", "ved": "flew", "vpp": "flown", "g": "ew"}, "forget": {"v": "forget", "kk": "[fɚˋgɛt]", "zh": "忘記", "ved": "forgot", "vpp": "forgotten", "g": "oen"}, "forgive": {"v": "forgive", "kk": "[fɚˋgɪv]", "zh": "原諒", "ved": "forgave", "vpp": "forgiven", "g": "solo", "trap": "跟 give-gave-given 同款，加 for 而已"}, "freeze": {"v": "freeze", "kk": "[friz]", "zh": "凍結；冰凍", "ved": "froze", "vpp": "frozen", "g": "oen"}, "get": {"v": "get", "kk": "[gɛt]", "zh": "得到", "ved": "got", "vpp": "gotten", "g": "oen", "trap": "美式第三態 gotten（課本用這個）"}, "give": {"v": "give", "kk": "[gɪv]", "zh": "給予", "ved": "gave", "vpp": "given", "g": "solo"}, "go": {"v": "go", "kk": "[go]", "zh": "去", "ved": "went", "vpp": "gone", "g": "solo", "trap": "went 是完全不同的字，必背"}, "grow": {"v": "grow", "kk": "[gro]", "zh": "成長", "ved": "grew", "vpp": "grown", "g": "ew"}, "hang": {"v": "hang", "kk": "[hæŋ]", "zh": "吊；掛", "ved": "hung", "vpp": "hung", "g": "abb"}, "have": {"v": "have", "kk": "[hæv]", "zh": "擁有；用餐", "ved": "had", "vpp": "had", "g": "aid"}, "hear": {"v": "hear", "kk": "[hɪr]", "zh": "聽", "ved": "heard", "vpp": "heard", "g": "abb", "trap": "heard 唸 [hɝd]，不是 [hɪrd]"}, "hide": {"v": "hide", "kk": "[haɪd]", "zh": "躲藏", "ved": "hid", "vpp": "hidden", "g": "itten"}, "hit": {"v": "hit", "kk": "[hɪt]", "zh": "打；侵襲", "ved": "hit", "vpp": "hit", "g": "aaa"}, "hold": {"v": "hold", "kk": "[hold]", "zh": "握住；支撐", "ved": "held", "vpp": "held", "g": "abb"}, "hurt": {"v": "hurt", "kk": "[hɝt]", "zh": "傷害；痛", "ved": "hurt", "vpp": "hurt", "g": "aaa"}, "keep": {"v": "keep", "kk": "[kip]", "zh": "保持", "ved": "kept", "vpp": "kept", "g": "ept"}, "know": {"v": "know", "kk": "[no]", "zh": "知道", "ved": "knew", "vpp": "known", "g": "ew"}, "lay": {"v": "lay", "kk": "[le]", "zh": "放置", "ved": "laid", "vpp": "laid", "g": "aid", "trap": "別跟 lie（躺）的過去式 lay 搞混！"}, "lead": {"v": "lead", "kk": "[lid]", "zh": "領導", "ved": "led", "vpp": "led", "g": "abb"}, "leave": {"v": "leave", "kk": "[liv]", "zh": "離開", "ved": "left", "vpp": "left", "g": "dt", "trap": "left 也是「左邊」，同拼字"}, "lend": {"v": "lend", "kk": "[lɛnd]", "zh": "借出", "ved": "lent", "vpp": "lent", "g": "dt"}, "let": {"v": "let", "kk": "[lɛt]", "zh": "允許", "ved": "let", "vpp": "let", "g": "aaa"}, "lie": {"v": "lie", "kk": "[laɪ]", "zh": "說謊；躺", "ved": "lied（說謊）/ lay（躺）", "vpp": "lied（說謊）/ lain（躺）", "g": "solo", "trap": "一字兩義兩套變化：說謊 lie-lied-lied；躺 lie-lay-lain"}, "light": {"v": "light", "kk": "[laɪt]", "zh": "點亮", "ved": "lit / lighted", "vpp": "lit / lighted", "g": "abb", "trap": "兩種都可：lit 或 lighted"}, "lose": {"v": "lose", "kk": "[luz]", "zh": "失去", "ved": "lost", "vpp": "lost", "g": "abb"}, "make": {"v": "make", "kk": "[mek]", "zh": "製造", "ved": "made", "vpp": "made", "g": "aid"}, "mean": {"v": "mean", "kk": "[min]", "zh": "意思…是", "ved": "meant", "vpp": "meant", "g": "dt", "trap": "meant 唸 [mɛnt]，母音縮短"}, "meet": {"v": "meet", "kk": "[mit]", "zh": "見面；相會", "ved": "met", "vpp": "met", "g": "abb"}, "pay": {"v": "pay", "kk": "[pe]", "zh": "支付", "ved": "paid", "vpp": "paid", "g": "aid"}, "put": {"v": "put", "kk": "[pʊt]", "zh": "放置", "ved": "put", "vpp": "put", "g": "aaa"}, "quit": {"v": "quit", "kk": "[kwɪt]", "zh": "放棄；辭", "ved": "quit", "vpp": "quit", "g": "aaa"}, "read": {"v": "read", "kk": "[rid]", "zh": "閱讀", "ved": "read", "vpp": "read", "g": "aaa", "trap": "拼法三態全同，但過去式/過去分詞唸 [rɛd]！"}, "ride": {"v": "ride", "kk": "[raɪd]", "zh": "騎乘", "ved": "rode", "vpp": "ridden", "g": "itten"}, "ring": {"v": "ring", "kk": "[rɪŋ]", "zh": "鳴響", "ved": "rang", "vpp": "rung", "g": "iau"}, "rise": {"v": "rise", "kk": "[raɪz]", "zh": "上升", "ved": "rose", "vpp": "risen", "g": "solo", "trap": "i→o→i+en，跟 drive 同款；rose 也是「玫瑰」"}, "run": {"v": "run", "kk": "[rʌn]", "zh": "跑；經營", "ved": "ran", "vpp": "run", "g": "aba"}, "say": {"v": "say", "kk": "[se]", "zh": "說", "ved": "said", "vpp": "said", "g": "aid", "trap": "said 唸 [sɛd]，不是 [sed]"}, "see": {"v": "see", "kk": "[si]", "zh": "看", "ved": "saw", "vpp": "seen", "g": "solo", "trap": "saw 也是「鋸子」"}, "seek": {"v": "seek", "kk": "[sik]", "zh": "尋找", "ved": "sought", "vpp": "sought", "g": "ought"}, "sell": {"v": "sell", "kk": "[sɛl]", "zh": "賣", "ved": "sold", "vpp": "sold", "g": "aid"}, "send": {"v": "send", "kk": "[sɛnd]", "zh": "寄；送", "ved": "sent", "vpp": "sent", "g": "dt"}, "set": {"v": "set", "kk": "[sɛt]", "zh": "安置；安裝", "ved": "set", "vpp": "set", "g": "aaa"}, "shake": {"v": "shake", "kk": "[ʃek]", "zh": "搖動", "ved": "shook", "vpp": "shaken", "g": "solo", "trap": "跟 take-took-taken 同款"}, "shine": {"v": "shine", "kk": "[ʃaɪn]", "zh": "照耀；擦亮", "ved": "shone（照耀）/ shined（擦亮）", "vpp": "shone（照耀）/ shined（擦亮）", "g": "solo", "trap": "照耀用 shone、擦亮用 shined"}, "shoot": {"v": "shoot", "kk": "[ʃut]", "zh": "發射", "ved": "shot", "vpp": "shot", "g": "abb"}, "show": {"v": "show", "kk": "[ʃo]", "zh": "表示；展現", "ved": "showed", "vpp": "shown", "g": "solo", "trap": "過去式規則(showed)、第三態不規則(shown)"}, "shut": {"v": "shut", "kk": "[ʃʌt]", "zh": "關閉", "ved": "shut", "vpp": "shut", "g": "aaa"}, "sing": {"v": "sing", "kk": "[sɪŋ]", "zh": "唱歌", "ved": "sang", "vpp": "sung", "g": "iau"}, "sink": {"v": "sink", "kk": "[sɪŋk]", "zh": "下沉", "ved": "sank", "vpp": "sunk", "g": "iau"}, "sit": {"v": "sit", "kk": "[sɪt]", "zh": "坐", "ved": "sat", "vpp": "sat", "g": "abb"}, "sleep": {"v": "sleep", "kk": "[slip]", "zh": "睡", "ved": "slept", "vpp": "slept", "g": "ept"}, "slide": {"v": "slide", "kk": "[slaɪd]", "zh": "滑；滑動", "ved": "slid", "vpp": "slid", "g": "abb"}, "speak": {"v": "speak", "kk": "[spik]", "zh": "說；演講", "ved": "spoke", "vpp": "spoken", "g": "oen"}, "spell": {"v": "spell", "kk": "[spɛl]", "zh": "拼字", "ved": "spelled / spelt", "vpp": "spelled / spelt", "g": "solo", "trap": "兩種都可：spelled 或 spelt"}, "spend": {"v": "spend", "kk": "[spɛnd]", "zh": "花費", "ved": "spent", "vpp": "spent", "g": "dt"}, "spread": {"v": "spread", "kk": "[sprɛd]", "zh": "展開；擴散", "ved": "spread", "vpp": "spread", "g": "aaa"}, "stand": {"v": "stand", "kk": "[stænd]", "zh": "站立", "ved": "stood", "vpp": "stood", "g": "aid"}, "steal": {"v": "steal", "kk": "[stil]", "zh": "偷竊", "ved": "stole", "vpp": "stolen", "g": "oen"}, "strike": {"v": "strike", "kk": "[straɪk]", "zh": "毆打；擊", "ved": "struck", "vpp": "struck / stricken", "g": "abb", "trap": "第三態兩種：struck 或 stricken"}, "swear": {"v": "swear", "kk": "[swɛr]", "zh": "發誓", "ved": "swore", "vpp": "sworn", "g": "orn"}, "sweep": {"v": "sweep", "kk": "[swip]", "zh": "掃；掃除", "ved": "swept", "vpp": "swept", "g": "ept"}, "swim": {"v": "swim", "kk": "[swɪm]", "zh": "游泳", "ved": "swam", "vpp": "swum", "g": "iau"}, "swing": {"v": "swing", "kk": "[swɪŋ]", "zh": "搖擺；擺動", "ved": "swung", "vpp": "swung", "g": "abb", "trap": "不是 i-a-u！直接 swung-swung"}, "take": {"v": "take", "kk": "[tek]", "zh": "拿取", "ved": "took", "vpp": "taken", "g": "solo"}, "teach": {"v": "teach", "kk": "[titʃ]", "zh": "教導", "ved": "taught", "vpp": "taught", "g": "ought"}, "tear": {"v": "tear", "kk": "[tɛr]", "zh": "撕；扯開", "ved": "tore", "vpp": "torn", "g": "orn"}, "tell": {"v": "tell", "kk": "[tɛl]", "zh": "告訴", "ved": "told", "vpp": "told", "g": "aid"}, "think": {"v": "think", "kk": "[θɪŋk]", "zh": "想；認為", "ved": "thought", "vpp": "thought", "g": "ought"}, "throw": {"v": "throw", "kk": "[θro]", "zh": "丟", "ved": "threw", "vpp": "thrown", "g": "ew"}, "understand": {"v": "understand", "kk": "[͵ʌndɚˋstænd]", "zh": "懂", "ved": "understood", "vpp": "understood", "g": "aid"}, "upset": {"v": "upset", "kk": "[ʌpˋsɛt]", "zh": "使煩惱", "ved": "upset", "vpp": "upset", "g": "aaa"}, "wake": {"v": "wake", "kk": "[wek]", "zh": "醒來", "ved": "woke", "vpp": "woken", "g": "oen"}, "wear": {"v": "wear", "kk": "[wɛr]", "zh": "穿著", "ved": "wore", "vpp": "worn", "g": "orn"}, "weave": {"v": "weave", "kk": "[wiv]", "zh": "編織", "ved": "wove", "vpp": "woven", "g": "oen"}, "weep": {"v": "weep", "kk": "[wip]", "zh": "哭泣", "ved": "wept", "vpp": "wept", "g": "ept"}, "wet": {"v": "wet", "kk": "[wɛt]", "zh": "弄濕", "ved": "wet", "vpp": "wet", "g": "aaa"}, "win": {"v": "win", "kk": "[wɪn]", "zh": "贏得", "ved": "won", "vpp": "won", "g": "abb", "trap": "won 唸 [wʌn]，跟 one 同音"}, "write": {"v": "write", "kk": "[raɪt]", "zh": "寫", "ved": "wrote", "vpp": "written", "g": "itten", "trap": "written 要雙寫 tt"}}};
+const ITEMS=DATA.items, VI=DATA.verbinfo||{};
+const TENSE_ZH={present:'現在式',past:'過去式 Ved',pp:'過去分詞 Vp.p.'};
+document.getElementById('subline').textContent=
+ `${ITEMS.length} 個動詞 ‧ ${ITEMS.reduce((a,x)=>a+x.sentences.length,0)} 個例句 ‧ 在句子裡獵出動詞、判斷時態`;
+
+/* 進度 */
+const KEY='sf_hunt_'+DATA.meta.title;
+let P={};try{P=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+const save=()=>localStorage.setItem(KEY,JSON.stringify(P));
+P.total=P.total||0;P.right=P.right||0;
+
+let order=[...ITEMS.keys()].sort(()=>Math.random()-.5),oi=0;
+let score={hit:0,all:0};
+
+function forms(raw){return raw.replace(/[（(].*?[)）]/g,' ').split(/[\/,]/)
+ .map(s=>s.trim().toLowerCase()).filter(s=>/^[a-z][a-z ]*$/.test(s));}
+function targetForms(base){
+ const v=VI[base]||{};
+ return new Set([base,base+'s',base+'es',...forms(v.ved||''),...forms(v.vpp||'')]);
+}
+
+function newRound(){
+ if(oi>=order.length){order=order.sort(()=>Math.random()-.5);oi=0;}
+ const item=ITEMS[order[oi++]];
+ const base=item.verb,v=VI[base]||{},tf=targetForms(base);
+ // 目標句 2-3 句 + 干擾句補到 5 句（干擾句不得含目標動詞任何形態）
+ const mine=[...item.sentences].sort(()=>Math.random()-.5)
+   .slice(0,2+Math.floor(Math.random()*2))
+   .map(s=>({...s,verb:base,has:true}));
+ const others=ITEMS.filter(x=>x.verb!==base)
+   .flatMap(x=>x.sentences.map(s=>({...s,verb:x.verb,has:false})))
+   .filter(s=>!s.text.toLowerCase().match(/[a-z']+/g).some(w=>tf.has(w)))
+   .sort(()=>Math.random()-.5).slice(0,5-mine.length);
+ const sents=[...mine,...others].sort(()=>Math.random()-.5);
+ renderRound(base,v,sents);
+}
+
+function renderRound(base,v,sents){
+ const el=document.getElementById('main');
+ let solved=0;
+ el.innerHTML=`
+  <div class="target"><div class="tlabel">🎯 目標動詞</div>
+   <div class="tv">${base}</div>
+   <div class="tzh">${v.kk||''}　${v.zh||''}　<b style="color:#ffd166">${v.ved||''} / ${v.vpp||''}</b></div>
+   <div class="tprog"><span id="rp">0 / ${sents.length} 句完成</span>
+    <span>累計答對 ${P.right} / ${P.total}</span></div></div>
+  <div class="mission">任務：下面每一句——有 <b>${base}</b> 家族的字就<b>點那個字</b>；
+   整句都沒有就按「這句沒有它」。</div>
+  <div id="sents"></div><div class="nextbar" id="nb"></div>`;
+ const holder=document.getElementById('sents');
+ const tf=targetForms(base);
+
+ sents.forEach((s,si)=>{
+  const box=document.createElement('div');box.className='sent';
+  const words=s.text.split(/(\s+)/);
+  box.innerHTML=`<div class="words">${words.map(w=>{
+    const core=w.replace(/[^A-Za-z']/g,'');
+    return core?`<span class="w" data-w="${core.toLowerCase()}">${w}</span>`:w;
+   }).join('')}</div>
+   <span class="nonebtn">🚫 這句沒有它</span>
+   <div class="tensepick"></div><div class="fb"></div>`;
+  const fb=box.querySelector('.fb'), tp=box.querySelector('.tensepick'),
+        nb=box.querySelector('.nonebtn');
+  let stage='hunt';
+
+  function finish(good){
+   box.classList.add('done',good?'good':'miss');
+   score.all++;P.total++;if(good){score.hit++;P.right++;}save();
+   solved++;document.getElementById('rp').textContent=`${solved} / ${sents.length} 句完成`;
+   if(solved===sents.length)
+     document.getElementById('nb').innerHTML=`<span class="nextbtn" id="nx">下一回合 →</span>`,
+     document.getElementById('nx').onclick=newRound;
+  }
+  function reveal(){
+   if(s.has)box.querySelectorAll('.w').forEach(x=>{
+     if(x.dataset.w===s.form.toLowerCase())x.classList.add('reveal');});
+  }
+
+  box.querySelectorAll('.w').forEach(w=>w.onclick=()=>{
+   if(stage!=='hunt')return;
+   const tapped=w.dataset.w;
+   if(s.has&&tapped===s.form.toLowerCase()){
+    w.classList.add('hit');stage='tense';
+    tp.innerHTML=Object.entries(TENSE_ZH).map(([k,n])=>
+     `<div class="tp" data-t="${k}">${n}${k==='pp'?'<small>have / has / had ＋</small>':''}</div>`).join('');
+    tp.classList.add('show');
+    tp.querySelectorAll('.tp').forEach(b=>b.onclick=()=>{
+     if(stage!=='tense')return;stage='done';
+     const good=b.dataset.t===s.tense;
+     tp.querySelectorAll('.tp').forEach(x=>{
+      if(x.dataset.t===s.tense)x.classList.add('right');
+      else if(x===b)x.classList.add('wrong');});
+     const vv=VI[s.verb]||{};
+     fb.className='fb show '+(good?'good':'bad');
+     fb.innerHTML=(good?'✅ 對！':'❌ 差一步！')+
+      ` <b>${s.form}</b> 是 <b>${s.verb}</b> 的<b>${TENSE_ZH[s.tense]}</b>`+
+      `（${s.verb} → ${vv.ved||'?'} → ${vv.vpp||'?'}）`+
+      (vv.trap?`<br>⚠️ ${vv.trap}`:'');
+     finish(good);
+    });
+   }else{
+    if(tf.has(tapped)&&s.has){/* 點到目標形態但拼字不同不可能，保留 */}
+    w.classList.add('no');setTimeout(()=>w.classList.remove('no'),600);
+    fb.className='fb show bad';
+    fb.textContent='不是這個字，再找找（提示：想想三態的長相）';
+   }
+  });
+  nb.onclick=()=>{
+   if(stage!=='hunt')return;stage='done';
+   const good=!s.has;
+   nb.classList.add(good?'hit':'no');
+   const vv=VI[s.verb]||{};
+   fb.className='fb show '+(good?'good':'bad');
+   fb.innerHTML=good?`✅ 對！這句用的是別的動詞（${s.verb}）`
+    :`❌ 有喔！<b>${s.form}</b> 就在句子裡——它是 ${s.verb} 的${TENSE_ZH[s.tense]}`;
+   if(!good)reveal();
+   finish(good);
+  };
+  holder.appendChild(box);
+ });
+}
+newRound();
+</script>
+</body>
+</html>
