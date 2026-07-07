@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>規律考古學家</title>
+<style>
+ *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+ :root{--bg:#0f1420;--card:#1a2130;--card2:#232c3f;--tx:#e8edf6;--dim:#95a0b5;--line:#2c3547;
+   --ok:#28c76f;--bad:#ea5455;--warn:#ff9f43;--blue:#4f8cff;--gold:#f6c343}
+ body{font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;
+   background:var(--bg);color:var(--tx);line-height:1.55;-webkit-text-size-adjust:100%;
+   min-height:100vh;display:flex;flex-direction:column}
+ .warnbar{background:#5b2530;color:#fff;padding:10px 14px;font-size:13px;text-align:center}
+ header{padding:16px 16px 8px;text-align:center}
+ h1{font-size:19px}
+ .sub{color:var(--dim);font-size:12px;margin-top:2px}
+ nav{display:flex;gap:8px;padding:10px 14px;position:sticky;top:0;z-index:10;
+   background:linear-gradient(180deg,var(--bg) 75%,transparent)}
+ .navbtn{flex:1;padding:10px 4px;text-align:center;border-radius:12px;font-size:14px;
+   background:var(--card);border:1px solid var(--line);color:var(--dim);cursor:pointer;user-select:none}
+ .navbtn.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+ main{flex:1;padding:6px 14px 40px;max-width:640px;margin:0 auto;width:100%}
+ footer{padding:14px;text-align:center;color:#4a5468;font-size:10.5px}
+ .hidden{display:none!important}
+
+ /* ===== 回合列表 ===== */
+ .prog{color:var(--dim);font-size:13px;text-align:center;margin-top:8px}
+ .rcard{display:flex;align-items:center;gap:12px;border-radius:14px;border:1px solid var(--line);
+   background:var(--card);margin-top:10px;padding:14px;cursor:pointer;user-select:none}
+ .rcard.lock{opacity:.45;cursor:default}
+ .rnum{width:34px;height:34px;border-radius:50%;background:var(--card2);flex:none;
+   display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+ .rcard.done .rnum{background:#1e5138}
+ .rtitle{font-size:15.5px;font-weight:700}
+ .rmeta{font-size:12px;color:var(--dim);margin-top:1px}
+ .rstars{margin-left:auto;font-size:14px;color:var(--gold);flex:none}
+
+ /* ===== 挖掘現場 ===== */
+ .backbtn{display:inline-block;margin-top:8px;font-size:13px;color:var(--dim);cursor:pointer;
+   padding:6px 12px;border:1px solid var(--line);border-radius:10px;user-select:none}
+ .story{margin-top:10px;padding:12px 14px;border-radius:12px;background:var(--card);
+   border:1px solid var(--line);font-size:13.5px;color:#cdd6e6}
+ .story b{color:var(--gold)}
+ .traylabel{margin-top:12px;font-size:12px;color:var(--dim)}
+ .tray{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;min-height:52px;padding:8px;
+   border-radius:12px;border:1.5px dashed var(--line)}
+ .vcard{padding:8px 11px;border-radius:11px;background:var(--card2);border:1.5px solid var(--line);
+   cursor:pointer;user-select:none;text-align:center}
+ .vcard .f{font-size:14.5px;font-weight:700;white-space:nowrap}
+ .vcard .f i{font-style:normal;color:var(--gold)}
+ .vcard .z{font-size:10.5px;color:var(--dim);margin-top:1px}
+ .vcard.sel{border-color:var(--blue);background:rgba(79,140,255,.22);transform:scale(1.06)}
+ .vcard.bad{animation:shake .5s;border-color:var(--bad)}
+ @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+ .pits{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+ .pits.p3{grid-template-columns:1fr 1fr 1fr}
+ @media (max-width:430px){.pits.p3{grid-template-columns:1fr 1fr}}
+ .pit{border-radius:14px;border:1.5px solid var(--line);background:rgba(26,33,48,.6);
+   min-height:110px;padding:8px;cursor:pointer}
+ .pit.hot{border-color:var(--blue);background:rgba(79,140,255,.1)}
+ .pitname{font-size:12px;color:var(--dim);text-align:center;font-weight:700;margin-bottom:6px}
+ .pit .vcard{display:inline-block;margin:3px;padding:5px 8px}
+ .pit .vcard .f{font-size:13px}
+ .pit .vcard .z{display:none}
+ .digbar{display:flex;gap:10px;margin-top:14px;align-items:center}
+ .checkbtn{flex:1;padding:14px;border-radius:14px;font-size:16px;font-weight:700;text-align:center;
+   cursor:pointer;user-select:none;border:none;color:#fff;background:var(--blue)}
+ .checkbtn:disabled{background:var(--card2);color:#57627a}
+ .tries{font-size:12px;color:var(--dim);flex:none}
+ .msg{margin-top:10px;font-size:13.5px;text-align:center;min-height:20px}
+ .msg.bad{color:var(--warn)}
+ .msg.good{color:var(--ok)}
+ .hintbox{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:12.5px;color:#cdd6e6;
+   background:rgba(255,159,67,.08);border-left:3px solid var(--warn)}
+ .hintbox b{color:var(--warn)}
+
+ /* ===== 鑑定結果(揭曉) ===== */
+ .fam{border-radius:14px;border:1px solid var(--line);background:var(--card);margin-top:12px;overflow:hidden}
+ .famhead{display:flex;align-items:center;gap:9px;padding:12px 14px}
+ .fdot{width:12px;height:12px;border-radius:50%;flex:none}
+ .famname{font-size:15.5px;font-weight:800;flex:1}
+ .newtag{font-size:11px;padding:2px 9px;border-radius:10px;background:rgba(40,199,111,.18);color:var(--ok);flex:none}
+ .revtag{font-size:11px;padding:2px 9px;border-radius:10px;background:var(--card2);color:var(--dim);flex:none}
+ .famhint{padding:0 14px 8px;font-size:12.5px;color:var(--dim)}
+ .ftable{width:100%;border-collapse:collapse;font-size:14px}
+ .ftable th{font-size:11px;color:var(--dim);font-weight:400;padding:3px 6px;border-top:1px solid #202839}
+ .ftable td{padding:6px;border-top:1px solid #202839;text-align:center}
+ .ftable td:first-child{font-weight:700}
+ .ftable td.ved{color:var(--gold)}
+ .ftable td.vpp{color:#9ad0ff}
+ .ftable td.zh{color:var(--dim);font-size:12px}
+ .trapline{font-size:11.5px;color:var(--warn);background:rgba(255,159,67,.07);padding:4px 12px}
+ .more{padding:8px 14px;font-size:12px;color:var(--dim);border-top:1px solid #202839}
+ .rulebox{padding:10px 14px 14px;border-top:1px solid #202839}
+ .rulebox label{font-size:12.5px;color:var(--ok);font-weight:700}
+ .rulebox textarea{width:100%;margin-top:6px;background:var(--card2);color:var(--tx);
+   border:1px solid var(--line);border-radius:10px;padding:9px;font-size:14px;font-family:inherit;
+   min-height:52px;resize:vertical}
+ .completebtn{width:100%;margin-top:14px;padding:15px;border-radius:14px;border:none;color:#fff;
+   font-size:16px;font-weight:800;background:var(--ok);cursor:pointer}
+ .completebtn:disabled{background:var(--card2);color:#57627a}
+ .completenote{text-align:center;font-size:11.5px;color:var(--dim);margin-top:6px}
+ .bigstars{text-align:center;font-size:30px;margin-top:12px;letter-spacing:4px}
+
+ /* ===== 圖鑑 ===== */
+ .gcard{border-radius:14px;border:1px solid var(--line);background:var(--card);margin-top:10px;overflow:hidden}
+ .ghead{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;user-select:none}
+ .gname{font-size:15px;font-weight:700;flex:1}
+ .gnum{font-size:12px;color:var(--dim);flex:none}
+ .ghint{padding:0 14px 10px;color:var(--dim);font-size:12.5px}
+ .gbody{display:none;border-top:1px solid var(--line)}
+ .gcard.open .gbody{display:block}
+ .gcard.lockg{opacity:.5}
+ .vrow{display:flex;align-items:baseline;gap:7px;padding:8px 14px;border-top:1px solid #202839;flex-wrap:wrap;font-size:14px}
+ .vrow:first-child{border-top:none}
+ .vrow b{min-width:74px}
+ .vrow .ved{color:var(--gold)}
+ .vrow .vpp{color:#9ad0ff}
+ .vrow .zh{color:var(--dim);font-size:11.5px;margin-left:auto}
+ .dug{font-size:11px}
+ .latertag{font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:8px;padding:0 6px}
+
+ /* ===== 筆記本 ===== */
+ .notecard{border-radius:14px;border:1px solid var(--line);background:var(--card);margin-top:10px;padding:12px 14px}
+ .notecard textarea{width:100%;margin-top:8px;background:var(--card2);color:var(--tx);
+   border:1px solid var(--line);border-radius:10px;padding:9px;font-size:14px;font-family:inherit;
+   min-height:48px;resize:vertical}
+ .emptynote{color:var(--dim);text-align:center;padding:40px 20px;font-size:13.5px}
+ .resetbtn{display:block;margin:26px auto 0;padding:9px 20px;border-radius:12px;font-size:12px;
+   border:1px solid var(--line);background:none;color:#57627a;cursor:pointer}
+
+ /* 彩带 */
+ .confetti{position:fixed;top:-30px;font-size:20px;z-index:99;pointer-events:none;animation:fall linear forwards}
+ @keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.4}}
+</style>
+</head>
+<body>
+<noscript><div class="warnbar">⚠️ 這個 App 需要 JavaScript。請把檔案下載後用瀏覽器
+（Chrome / Safari / Firefox）開啟，不要用聊天軟體的預覽視窗。</div></noscript>
+
+<header>
+ <h1>🏺 規律考古學家</h1>
+ <div class="sub">把動詞化石分坑，自己挖出變身規律——規則是你發現的，不是背的</div>
+</header>
+
+<nav>
+ <div class="navbtn on" data-v="dig">⛏️ 挖掘</div>
+ <div class="navbtn" data-v="dex">🏛️ 圖鑑</div>
+ <div class="navbtn" data-v="note">📓 筆記本</div>
+</nav>
+
+<main>
+ <section id="view-dig"><div id="roundlist"></div><div id="digscene" class="hidden"></div></section>
+ <section id="view-dex" class="hidden"></section>
+ <section id="view-note" class="hidden"></section>
+</main>
+
+<footer>來源：國中七年級不規則動詞三態表（110 個） ‧ 資料驗證：動詞三態引用已人工核驗資料；回合設定 Claude (strong model) 設計＋閘門機械驗證 2026-07-08 ‧ study-forge v4</footer>
+
+<script>
+const DATA={"meta": {"title": "規律考古學家", "grade": "七年級", "source_pdf": "國中英文不規則動詞三態變化表（通用）", "source_desc": "國中七年級不規則動詞三態表（110 個）", "verbs_ref": "verbs_grade7_v1.json", "human_verified": true, "verified_by": "動詞三態引用已人工核驗資料；回合設定 Claude (strong model) 設計＋閘門機械驗證 2026-07-08", "schema_version": 4, "app": "pattern_dig"}, "rounds": [{"id": "r1", "title": "入口的兩座石堆", "story": "遺跡入口有兩座石堆。有些動詞變過去式時「完全不變身」，有些尾巴會變成同一種聲音——把長得像同一族的放進同一個坑！", "families": [{"g": "aaa", "new": true, "verbs": ["cut", "put", "hit", "let", "cost", "hurt"]}, {"g": "ought", "new": true, "verbs": ["buy", "bring", "catch", "teach", "think", "fight"]}]}, {"id": "r2", "title": "歌聲迴盪的洞窟", "story": "這個洞窟會回音：i—a—u！還有一群字尾巴會變成 ew。小心，裡面混了兩塊你已經認識的化石。", "families": [{"g": "iau", "new": true, "verbs": ["begin", "drink", "ring", "sing", "sink", "swim"]}, {"g": "ew", "new": true, "verbs": ["blow", "draw", "fly", "grow", "know", "throw"]}, {"g": "aaa", "new": false, "verbs": ["read", "set"]}]}, {"id": "r3", "title": "工匠的地下室", "story": "古代工匠蓋房子(build)、保存糧食(keep)。他們的動詞尾巴都愛變成 t——但變法有兩種，分得出來嗎？", "families": [{"g": "ept", "new": true, "verbs": ["keep", "sleep", "sweep", "weep"]}, {"g": "dt", "new": true, "verbs": ["bend", "build", "feel", "leave", "send", "spend"]}, {"g": "ought", "new": false, "verbs": ["seek"]}]}, {"id": "r4", "title": "破碎的陶罐", "story": "有人打破(break)了陶罐，上面寫(write)著古文字。這裡的字過去式都變 o 或變短——第三態還會加 en！", "families": [{"g": "oen", "new": true, "verbs": ["break", "choose", "speak", "steal", "wake", "get"]}, {"g": "itten", "new": true, "verbs": ["bite", "hide", "ride", "write"]}, {"g": "dt", "new": false, "verbs": ["deal", "lend", "mean"]}]}, {"id": "r5", "title": "衣飾間與回音壁", "story": "古人在這裡穿衣(wear)、發誓(swear)。牆上還有一種奇怪的字：頭尾一模一樣，只有中間變！", "families": [{"g": "aba", "new": true, "verbs": ["become", "come", "run"]}, {"g": "orn", "new": true, "verbs": ["bear", "swear", "tear", "wear"]}, {"g": "oen", "new": false, "verbs": ["forget", "freeze", "weave"]}]}, {"id": "r6", "title": "大寶庫", "story": "寶庫裡兩大箱寶物：一箱是「母音變一次就到底」的字，另一箱是「拼法只小改一下」的字。仔細看過去式的長相！", "families": [{"g": "abb", "new": true, "verbs": ["dig", "win", "find", "hear", "hold", "meet", "sit", "lose"]}, {"g": "aid", "new": true, "verbs": ["say", "pay", "lay", "sell", "tell", "stand"]}]}, {"id": "r7", "title": "傳說化石廳", "story": "最深處的大廳！有些動詞太古老、太常用，誰的規律都不跟——它們是傳說級化石。把它們跟有規律的家族分開！", "families": [{"g": "solo", "new": true, "verbs": ["be", "do", "go", "eat", "see", "take"]}, {"g": "abb", "new": false, "verbs": ["feed", "shoot", "slide", "swing"]}, {"g": "aid", "new": false, "verbs": ["have", "make"]}]}], "verbinfo": {"be": {"v": "be", "kk": "[bi]", "zh": "是；存在", "ved": "was / were", "vpp": "been", "g": "solo", "trap": "唯一有兩個過去式：I/he/she/it→was，you/we/they→were"}, "bear": {"v": "bear", "kk": "[bɛr]", "zh": "生（孩子）；負擔", "ved": "bore", "vpp": "born / borne", "g": "orn", "trap": "「出生」用 born（He was born…）；「承擔」用 borne"}, "beat": {"v": "beat", "kk": "[bit]", "zh": "打", "ved": "beat", "vpp": "beaten", "g": "solo", "trap": "前兩態相同，第三態才加 en：beat-beat-beaten"}, "become": {"v": "become", "kk": "[bɪˋkʌm]", "zh": "變成", "ved": "became", "vpp": "become", "g": "aba"}, "begin": {"v": "begin", "kk": "[bɪˋgɪn]", "zh": "開始", "ved": "began", "vpp": "begun", "g": "iau"}, "bend": {"v": "bend", "kk": "[bɛnd]", "zh": "彎曲", "ved": "bent", "vpp": "bent", "g": "dt"}, "bite": {"v": "bite", "kk": "[baɪt]", "zh": "咬", "ved": "bit", "vpp": "bitten", "g": "itten"}, "blow": {"v": "blow", "kk": "[blo]", "zh": "吹", "ved": "blew", "vpp": "blown", "g": "ew"}, "break": {"v": "break", "kk": "[brek]", "zh": "打破；切斷", "ved": "broke", "vpp": "broken", "g": "oen"}, "bring": {"v": "bring", "kk": "[brɪŋ]", "zh": "帶來", "ved": "brought", "vpp": "brought", "g": "ought"}, "broadcast": {"v": "broadcast", "kk": "[ˋbrɔd͵kæst]", "zh": "廣播", "ved": "broadcast", "vpp": "broadcast", "g": "aaa"}, "build": {"v": "build", "kk": "[bɪld]", "zh": "建造；蓋", "ved": "built", "vpp": "built", "g": "dt"}, "burst": {"v": "burst", "kk": "[bɝst]", "zh": "突然爆開", "ved": "burst", "vpp": "burst", "g": "aaa"}, "buy": {"v": "buy", "kk": "[baɪ]", "zh": "買", "ved": "bought", "vpp": "bought", "g": "ought"}, "catch": {"v": "catch", "kk": "[kætʃ]", "zh": "抓；捉；捕", "ved": "caught", "vpp": "caught", "g": "ought"}, "choose": {"v": "choose", "kk": "[tʃuz]", "zh": "選擇", "ved": "chose", "vpp": "chosen", "g": "oen"}, "come": {"v": "come", "kk": "[kʌm]", "zh": "來", "ved": "came", "vpp": "come", "g": "aba"}, "cost": {"v": "cost", "kk": "[kɔst]", "zh": "花費", "ved": "cost", "vpp": "cost", "g": "aaa"}, "cut": {"v": "cut", "kk": "[kʌt]", "zh": "切", "ved": "cut", "vpp": "cut", "g": "aaa"}, "deal": {"v": "deal", "kk": "[dil]", "zh": "處理；交易", "ved": "dealt", "vpp": "dealt", "g": "dt", "trap": "dealt 唸 [dɛlt]，母音縮短"}, "dig": {"v": "dig", "kk": "[dɪg]", "zh": "挖", "ved": "dug", "vpp": "dug", "g": "abb"}, "dive": {"v": "dive", "kk": "[daɪv]", "zh": "潛水", "ved": "dived / dove", "vpp": "dived", "g": "solo", "trap": "過去式兩種都可：dived 或 dove"}, "do": {"v": "do", "kk": "[du]", "zh": "做", "ved": "did", "vpp": "done", "g": "solo"}, "draw": {"v": "draw", "kk": "[drɔ]", "zh": "畫；拉", "ved": "drew", "vpp": "drawn", "g": "ew"}, "drink": {"v": "drink", "kk": "[drɪŋk]", "zh": "喝", "ved": "drank", "vpp": "drunk", "g": "iau"}, "drive": {"v": "drive", "kk": "[draɪv]", "zh": "駕駛；開車", "ved": "drove", "vpp": "driven", "g": "solo", "trap": "i→o→i+en：drive-drove-driven，rise 同款"}, "eat": {"v": "eat", "kk": "[it]", "zh": "吃", "ved": "ate", "vpp": "eaten", "g": "solo"}, "fall": {"v": "fall", "kk": "[fɔl]", "zh": "倒下；落下", "ved": "fell", "vpp": "fallen", "g": "solo", "trap": "fall-fell 別跟 fly-flew（飛）搞混"}, "feed": {"v": "feed", "kk": "[fid]", "zh": "餵", "ved": "fed", "vpp": "fed", "g": "abb"}, "feel": {"v": "feel", "kk": "[fil]", "zh": "感覺", "ved": "felt", "vpp": "felt", "g": "dt"}, "fight": {"v": "fight", "kk": "[faɪt]", "zh": "吵架；打架", "ved": "fought", "vpp": "fought", "g": "ought"}, "find": {"v": "find", "kk": "[faɪnd]", "zh": "找到；發現", "ved": "found", "vpp": "found", "g": "abb"}, "fly": {"v": "fly", "kk": "[flaɪ]", "zh": "飛", "ved": "flew", "vpp": "flown", "g": "ew"}, "forget": {"v": "forget", "kk": "[fɚˋgɛt]", "zh": "忘記", "ved": "forgot", "vpp": "forgotten", "g": "oen"}, "forgive": {"v": "forgive", "kk": "[fɚˋgɪv]", "zh": "原諒", "ved": "forgave", "vpp": "forgiven", "g": "solo", "trap": "跟 give-gave-given 同款，加 for 而已"}, "freeze": {"v": "freeze", "kk": "[friz]", "zh": "凍結；冰凍", "ved": "froze", "vpp": "frozen", "g": "oen"}, "get": {"v": "get", "kk": "[gɛt]", "zh": "得到", "ved": "got", "vpp": "gotten", "g": "oen", "trap": "美式第三態 gotten（課本用這個）"}, "give": {"v": "give", "kk": "[gɪv]", "zh": "給予", "ved": "gave", "vpp": "given", "g": "solo"}, "go": {"v": "go", "kk": "[go]", "zh": "去", "ved": "went", "vpp": "gone", "g": "solo", "trap": "went 是完全不同的字，必背"}, "grow": {"v": "grow", "kk": "[gro]", "zh": "成長", "ved": "grew", "vpp": "grown", "g": "ew"}, "hang": {"v": "hang", "kk": "[hæŋ]", "zh": "吊；掛", "ved": "hung", "vpp": "hung", "g": "abb"}, "have": {"v": "have", "kk": "[hæv]", "zh": "擁有；用餐", "ved": "had", "vpp": "had", "g": "aid"}, "hear": {"v": "hear", "kk": "[hɪr]", "zh": "聽", "ved": "heard", "vpp": "heard", "g": "abb", "trap": "heard 唸 [hɝd]，不是 [hɪrd]"}, "hide": {"v": "hide", "kk": "[haɪd]", "zh": "躲藏", "ved": "hid", "vpp": "hidden", "g": "itten"}, "hit": {"v": "hit", "kk": "[hɪt]", "zh": "打；侵襲", "ved": "hit", "vpp": "hit", "g": "aaa"}, "hold": {"v": "hold", "kk": "[hold]", "zh": "握住；支撐", "ved": "held", "vpp": "held", "g": "abb"}, "hurt": {"v": "hurt", "kk": "[hɝt]", "zh": "傷害；痛", "ved": "hurt", "vpp": "hurt", "g": "aaa"}, "keep": {"v": "keep", "kk": "[kip]", "zh": "保持", "ved": "kept", "vpp": "kept", "g": "ept"}, "know": {"v": "know", "kk": "[no]", "zh": "知道", "ved": "knew", "vpp": "known", "g": "ew"}, "lay": {"v": "lay", "kk": "[le]", "zh": "放置", "ved": "laid", "vpp": "laid", "g": "aid", "trap": "別跟 lie（躺）的過去式 lay 搞混！"}, "lead": {"v": "lead", "kk": "[lid]", "zh": "領導", "ved": "led", "vpp": "led", "g": "abb"}, "leave": {"v": "leave", "kk": "[liv]", "zh": "離開", "ved": "left", "vpp": "left", "g": "dt", "trap": "left 也是「左邊」，同拼字"}, "lend": {"v": "lend", "kk": "[lɛnd]", "zh": "借出", "ved": "lent", "vpp": "lent", "g": "dt"}, "let": {"v": "let", "kk": "[lɛt]", "zh": "允許", "ved": "let", "vpp": "let", "g": "aaa"}, "lie": {"v": "lie", "kk": "[laɪ]", "zh": "說謊；躺", "ved": "lied（說謊）/ lay（躺）", "vpp": "lied（說謊）/ lain（躺）", "g": "solo", "trap": "一字兩義兩套變化：說謊 lie-lied-lied；躺 lie-lay-lain"}, "light": {"v": "light", "kk": "[laɪt]", "zh": "點亮", "ved": "lit / lighted", "vpp": "lit / lighted", "g": "abb", "trap": "兩種都可：lit 或 lighted"}, "lose": {"v": "lose", "kk": "[luz]", "zh": "失去", "ved": "lost", "vpp": "lost", "g": "abb"}, "make": {"v": "make", "kk": "[mek]", "zh": "製造", "ved": "made", "vpp": "made", "g": "aid"}, "mean": {"v": "mean", "kk": "[min]", "zh": "意思…是", "ved": "meant", "vpp": "meant", "g": "dt", "trap": "meant 唸 [mɛnt]，母音縮短"}, "meet": {"v": "meet", "kk": "[mit]", "zh": "見面；相會", "ved": "met", "vpp": "met", "g": "abb"}, "pay": {"v": "pay", "kk": "[pe]", "zh": "支付", "ved": "paid", "vpp": "paid", "g": "aid"}, "put": {"v": "put", "kk": "[pʊt]", "zh": "放置", "ved": "put", "vpp": "put", "g": "aaa"}, "quit": {"v": "quit", "kk": "[kwɪt]", "zh": "放棄；辭", "ved": "quit", "vpp": "quit", "g": "aaa"}, "read": {"v": "read", "kk": "[rid]", "zh": "閱讀", "ved": "read", "vpp": "read", "g": "aaa", "trap": "拼法三態全同，但過去式/過去分詞唸 [rɛd]！"}, "ride": {"v": "ride", "kk": "[raɪd]", "zh": "騎乘", "ved": "rode", "vpp": "ridden", "g": "itten"}, "ring": {"v": "ring", "kk": "[rɪŋ]", "zh": "鳴響", "ved": "rang", "vpp": "rung", "g": "iau"}, "rise": {"v": "rise", "kk": "[raɪz]", "zh": "上升", "ved": "rose", "vpp": "risen", "g": "solo", "trap": "i→o→i+en，跟 drive 同款；rose 也是「玫瑰」"}, "run": {"v": "run", "kk": "[rʌn]", "zh": "跑；經營", "ved": "ran", "vpp": "run", "g": "aba"}, "say": {"v": "say", "kk": "[se]", "zh": "說", "ved": "said", "vpp": "said", "g": "aid", "trap": "said 唸 [sɛd]，不是 [sed]"}, "see": {"v": "see", "kk": "[si]", "zh": "看", "ved": "saw", "vpp": "seen", "g": "solo", "trap": "saw 也是「鋸子」"}, "seek": {"v": "seek", "kk": "[sik]", "zh": "尋找", "ved": "sought", "vpp": "sought", "g": "ought"}, "sell": {"v": "sell", "kk": "[sɛl]", "zh": "賣", "ved": "sold", "vpp": "sold", "g": "aid"}, "send": {"v": "send", "kk": "[sɛnd]", "zh": "寄；送", "ved": "sent", "vpp": "sent", "g": "dt"}, "set": {"v": "set", "kk": "[sɛt]", "zh": "安置；安裝", "ved": "set", "vpp": "set", "g": "aaa"}, "shake": {"v": "shake", "kk": "[ʃek]", "zh": "搖動", "ved": "shook", "vpp": "shaken", "g": "solo", "trap": "跟 take-took-taken 同款"}, "shine": {"v": "shine", "kk": "[ʃaɪn]", "zh": "照耀；擦亮", "ved": "shone（照耀）/ shined（擦亮）", "vpp": "shone（照耀）/ shined（擦亮）", "g": "solo", "trap": "照耀用 shone、擦亮用 shined"}, "shoot": {"v": "shoot", "kk": "[ʃut]", "zh": "發射", "ved": "shot", "vpp": "shot", "g": "abb"}, "show": {"v": "show", "kk": "[ʃo]", "zh": "表示；展現", "ved": "showed", "vpp": "shown", "g": "solo", "trap": "過去式規則(showed)、第三態不規則(shown)"}, "shut": {"v": "shut", "kk": "[ʃʌt]", "zh": "關閉", "ved": "shut", "vpp": "shut", "g": "aaa"}, "sing": {"v": "sing", "kk": "[sɪŋ]", "zh": "唱歌", "ved": "sang", "vpp": "sung", "g": "iau"}, "sink": {"v": "sink", "kk": "[sɪŋk]", "zh": "下沉", "ved": "sank", "vpp": "sunk", "g": "iau"}, "sit": {"v": "sit", "kk": "[sɪt]", "zh": "坐", "ved": "sat", "vpp": "sat", "g": "abb"}, "sleep": {"v": "sleep", "kk": "[slip]", "zh": "睡", "ved": "slept", "vpp": "slept", "g": "ept"}, "slide": {"v": "slide", "kk": "[slaɪd]", "zh": "滑；滑動", "ved": "slid", "vpp": "slid", "g": "abb"}, "speak": {"v": "speak", "kk": "[spik]", "zh": "說；演講", "ved": "spoke", "vpp": "spoken", "g": "oen"}, "spell": {"v": "spell", "kk": "[spɛl]", "zh": "拼字", "ved": "spelled / spelt", "vpp": "spelled / spelt", "g": "solo", "trap": "兩種都可：spelled 或 spelt"}, "spend": {"v": "spend", "kk": "[spɛnd]", "zh": "花費", "ved": "spent", "vpp": "spent", "g": "dt"}, "spread": {"v": "spread", "kk": "[sprɛd]", "zh": "展開；擴散", "ved": "spread", "vpp": "spread", "g": "aaa"}, "stand": {"v": "stand", "kk": "[stænd]", "zh": "站立", "ved": "stood", "vpp": "stood", "g": "aid"}, "steal": {"v": "steal", "kk": "[stil]", "zh": "偷竊", "ved": "stole", "vpp": "stolen", "g": "oen"}, "strike": {"v": "strike", "kk": "[straɪk]", "zh": "毆打；擊", "ved": "struck", "vpp": "struck / stricken", "g": "abb", "trap": "第三態兩種：struck 或 stricken"}, "swear": {"v": "swear", "kk": "[swɛr]", "zh": "發誓", "ved": "swore", "vpp": "sworn", "g": "orn"}, "sweep": {"v": "sweep", "kk": "[swip]", "zh": "掃；掃除", "ved": "swept", "vpp": "swept", "g": "ept"}, "swim": {"v": "swim", "kk": "[swɪm]", "zh": "游泳", "ved": "swam", "vpp": "swum", "g": "iau"}, "swing": {"v": "swing", "kk": "[swɪŋ]", "zh": "搖擺；擺動", "ved": "swung", "vpp": "swung", "g": "abb", "trap": "不是 i-a-u！直接 swung-swung"}, "take": {"v": "take", "kk": "[tek]", "zh": "拿取", "ved": "took", "vpp": "taken", "g": "solo"}, "teach": {"v": "teach", "kk": "[titʃ]", "zh": "教導", "ved": "taught", "vpp": "taught", "g": "ought"}, "tear": {"v": "tear", "kk": "[tɛr]", "zh": "撕；扯開", "ved": "tore", "vpp": "torn", "g": "orn"}, "tell": {"v": "tell", "kk": "[tɛl]", "zh": "告訴", "ved": "told", "vpp": "told", "g": "aid"}, "think": {"v": "think", "kk": "[θɪŋk]", "zh": "想；認為", "ved": "thought", "vpp": "thought", "g": "ought"}, "throw": {"v": "throw", "kk": "[θro]", "zh": "丟", "ved": "threw", "vpp": "thrown", "g": "ew"}, "understand": {"v": "understand", "kk": "[͵ʌndɚˋstænd]", "zh": "懂", "ved": "understood", "vpp": "understood", "g": "aid"}, "upset": {"v": "upset", "kk": "[ʌpˋsɛt]", "zh": "使煩惱", "ved": "upset", "vpp": "upset", "g": "aaa"}, "wake": {"v": "wake", "kk": "[wek]", "zh": "醒來", "ved": "woke", "vpp": "woken", "g": "oen"}, "wear": {"v": "wear", "kk": "[wɛr]", "zh": "穿著", "ved": "wore", "vpp": "worn", "g": "orn"}, "weave": {"v": "weave", "kk": "[wiv]", "zh": "編織", "ved": "wove", "vpp": "woven", "g": "oen"}, "weep": {"v": "weep", "kk": "[wip]", "zh": "哭泣", "ved": "wept", "vpp": "wept", "g": "ept"}, "wet": {"v": "wet", "kk": "[wɛt]", "zh": "弄濕", "ved": "wet", "vpp": "wet", "g": "aaa"}, "win": {"v": "win", "kk": "[wɪn]", "zh": "贏得", "ved": "won", "vpp": "won", "g": "abb", "trap": "won 唸 [wʌn]，跟 one 同音"}, "write": {"v": "write", "kk": "[raɪt]", "zh": "寫", "ved": "wrote", "vpp": "written", "g": "itten", "trap": "written 要雙寫 tt"}}, "groupinfo": {"aaa": {"id": "aaa", "name": "三態全同", "hint": "最好賺的一群：三個長一樣！但小心 read 拼法同、發音變 [rid]→[rɛd]", "color": "#28c76f"}, "aba": {"id": "aba", "name": "頭尾相同 A-B-A", "hint": "只有中間變：come-came-come。become、run 同款", "color": "#00cfe8"}, "ought": {"id": "ought", "name": "ought/aught 家族", "hint": "「買帶想打找」變 ought；「抓、教」變 aught。尾音都唸 [ɔt]", "color": "#ff9f43"}, "ept": {"id": "ept", "name": "-ep → -ept 家族", "hint": "keep→kept。睡覺(sleep)、掃地(sweep)、哭(weep)都一樣", "color": "#f6c343"}, "dt": {"id": "dt", "name": "結尾變 t", "hint": "bend→bent（d 換 t）；feel→felt、leave→left（加 t 縮母音）", "color": "#9b5de5"}, "abb": {"id": "abb", "name": "母音一變到底 A-B-B", "hint": "母音變一次，後面兩態相同：dig-dug-dug、win-won-won", "color": "#4f8cff"}, "aid": {"id": "aid", "name": "拼法小改裝", "hint": "say/pay/lay→said/paid/laid；sell/tell→sold/told；stand→stood", "color": "#7367f0"}, "iau": {"id": "iau", "name": "i-a-u 三段變", "hint": "唱歌口訣：sing-sang-sung。begin、drink、swim、ring、sink 全家福", "color": "#ea5455"}, "ew": {"id": "ew", "name": "ew / own 家族", "hint": "know-knew-known。吹(blow)、長(grow)、丟(throw)、飛(fly)、畫(draw)", "color": "#00b8a9"}, "oen": {"id": "oen", "name": "o…en 家族", "hint": "過去式變 o、第三態加 n：speak-spoke-spoken、break-broke-broken", "color": "#f08a5d"}, "itten": {"id": "itten", "name": "雙寫+en 家族", "hint": "write-wrote-written（tt）、ride-rode-ridden（dd）、bite、hide", "color": "#b83b5e"}, "orn": {"id": "orn", "name": "ore / orn 家族", "hint": "穿(wear)、撕(tear)、發誓(swear)、生(bear)：-ore→-orn", "color": "#6a2c70"}, "solo": {"id": "solo", "name": "個性派（各自記）", "hint": "沒規律的大魔王：be、do、go、eat、see、take…一個一個馴服", "color": "#8a94a6"}}};
+const LS="sf_pattern_dig_v1";
+const R=DATA.rounds, V=DATA.verbinfo, G=DATA.groupinfo;
+const GIDS=Object.keys(G);
+
+let S; try{S=JSON.parse(localStorage.getItem(LS))||{}}catch(e){S={}}
+S.done=S.done||{}; S.rules=S.rules||{};
+const save=()=>localStorage.setItem(LS,JSON.stringify(S));
+
+/* ---------- 小工具 ---------- */
+const $=s=>document.querySelector(s);
+const el=(tag,cls,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function shuf(a,seed){let s=seed>>>0;const r=()=>(s=(s*1664525+1013904223)>>>0)/4294967296;
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const seedOf=str=>[...str].reduce((a,c)=>a*31+c.charCodeAt(0)>>>0,7);
+function discovered(){const d=new Set();R.forEach(r=>{if(S.done[r.id])r.families.forEach(f=>{if(f.new)d.add(f.g)})});return d}
+function dugVerbs(){const s=new Set();R.forEach(r=>{if(S.done[r.id])r.families.forEach(f=>f.verbs.forEach(v=>s.add(v)))});return s}
+function nextRoundIdx(){for(let i=0;i<R.length;i++)if(!S.done[R[i].id])return i;return R.length}
+function boom(){const em=["🎉","🏺","✨","⭐"];for(let i=0;i<22;i++){const c=el("span","confetti",em[i%4]);
+  c.style.left=Math.random()*100+"vw";c.style.animationDuration=(1.6+Math.random()*1.6)+"s";
+  document.body.appendChild(c);setTimeout(()=>c.remove(),3400)}}
+
+/* ---------- 導覽 ---------- */
+document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".navbtn").forEach(x=>x.classList.toggle("on",x===b));
+  ["dig","dex","note"].forEach(v=>$("#view-"+v).classList.toggle("hidden",v!==b.dataset.v));
+  if(b.dataset.v==="dex")renderDex(); if(b.dataset.v==="note")renderNote();
+  if(b.dataset.v==="dig"&&!P)renderRoundList();
+});
+
+/* ---------- 回合列表 ---------- */
+function renderRoundList(){
+  $("#digscene").classList.add("hidden");$("#digscene").innerHTML="";
+  const box=$("#roundlist");box.classList.remove("hidden");box.innerHTML="";
+  const disc=discovered();
+  box.appendChild(el("div","prog",`已發現 <b style="color:var(--gold)">${disc.size}</b> / ${GIDS.length} 個家族　‧　收藏化石 ${dugVerbs().size} / ${Object.keys(V).length} 塊`));
+  const nxt=nextRoundIdx();
+  R.forEach((r,i)=>{
+    const done=S.done[r.id],unlocked=i<=nxt;
+    const c=el("div","rcard"+(done?" done":"")+(unlocked?"":" lock"));
+    c.appendChild(el("div","rnum",done?"✓":(unlocked?String(i+1):"🔒")));
+    const mid=el("div","");
+    mid.appendChild(el("div","rtitle",esc(r.title)));
+    const fams=r.families.map(f=>f.new?"新家族×1":"").filter(Boolean).length||0;
+    const nNew=r.families.filter(f=>f.new).length,nCards=r.families.reduce((a,f)=>a+f.verbs.length,0);
+    mid.appendChild(el("div","rmeta",`${nCards} 塊化石 ‧ ${nNew} 個新家族${r.families.length-nNew?` ‧ 含複習`:""}`));
+    c.appendChild(mid);
+    if(done)c.appendChild(el("div","rstars","★".repeat(done)+"☆".repeat(3-done)));
+    if(unlocked)c.onclick=()=>openRound(i);
+    box.appendChild(c);
+  });
+  if(nxt>=R.length){
+    const d=el("div","story","🏆 <b>全遺跡挖掘完成！</b>13 個家族全數出土。到圖鑑看看你的收藏，或重玩任何回合拿三顆星。");
+    box.appendChild(d);
+  }
+}
+
+/* ---------- 挖掘現場 ---------- */
+let P=null; // 進行中回合狀態
+function openRound(i){
+  const r=R[i];
+  const cards=shuf(r.families.flatMap(f=>f.verbs),seedOf(r.id));
+  P={i,r,tray:cards,pits:r.families.map(()=>[]),sel:null,tries:0,revealed:false};
+  $("#roundlist").classList.add("hidden");
+  renderDig("");
+}
+function cardEl(v,where){
+  const info=V[v];
+  const c=el("div","vcard"+(P.sel===v?" sel":""));
+  c.dataset.v=v;
+  c.appendChild(el("div","f",`${esc(v)} → <i>${esc(info.ved)}</i>`));
+  c.appendChild(el("div","z",esc(info.zh)));
+  c.onclick=e=>{e.stopPropagation();
+    if(where==="tray"){P.sel=(P.sel===v?null:v);renderDig()}
+    else{const p=P.pits[where];p.splice(p.indexOf(v),1);P.tray.push(v);P.sel=null;renderDig()}
+  };
+  return c;
+}
+function renderDig(msg,msgCls){
+  const sc=$("#digscene");sc.classList.remove("hidden");sc.innerHTML="";
+  const r=P.r;
+  const back=el("div","backbtn","← 回合列表");
+  back.onclick=()=>{P=null;renderRoundList()};
+  sc.appendChild(back);
+  sc.appendChild(el("div","story",`<b>第 ${P.i+1} 站｜${esc(r.title)}</b><br>${esc(r.story)}`));
+  if(P.revealed)return renderReveal(sc);
+  sc.appendChild(el("div","traylabel",P.sel?"👉 點一個坑放進去（再點選中的卡可取消）":"點一塊化石，再點要放進的坑："));
+  const tray=el("div","tray");
+  P.tray.forEach(v=>tray.appendChild(cardEl(v,"tray")));
+  if(!P.tray.length)tray.appendChild(el("div","traylabel","（化石都放進坑裡了，按「鑑定」！）"));
+  sc.appendChild(tray);
+  const pits=el("div","pits"+(P.pits.length>2?" p3":""));
+  P.pits.forEach((p,pi)=>{
+    const pit=el("div","pit"+(P.sel?" hot":""));
+    pit.appendChild(el("div","pitname",`坑 ${"ABCD"[pi]}（${p.length}）`));
+    p.forEach(v=>pit.appendChild(cardEl(v,pi)));
+    pit.onclick=()=>{if(P.sel){P.pits[pi].push(P.sel);P.tray.splice(P.tray.indexOf(P.sel),1);P.sel=null;renderDig()}};
+    pits.appendChild(pit);
+  });
+  sc.appendChild(pits);
+  const bar=el("div","digbar");
+  const btn=el("button","checkbtn","🔍 鑑定");
+  btn.disabled=P.tray.length>0;
+  btn.onclick=check;
+  bar.appendChild(btn);
+  bar.appendChild(el("div","tries",P.tries?`已鑑定 ${P.tries} 次`:""));
+  sc.appendChild(bar);
+  if(msg)sc.appendChild(el("div","msg "+(msgCls||""),msg));
+  if(P.tries>=2){
+    const hb=el("div","hintbox","<b>🔦 考古隊的線索</b>——這一站的家族特徵："+
+      P.r.families.map(f=>`<br>‧ ${esc(G[f.g].hint)}`).join(""));
+    sc.appendChild(hb);
+  }
+}
+function check(){
+  const fams=P.r.families.map(f=>f.g);
+  // 每個家族的「主坑」= 該家族卡片最多的坑
+  const home={};
+  fams.forEach(g=>{let best=0,bc=-1;
+    P.pits.forEach((p,i)=>{const c=p.filter(v=>V[v].g===g).length;if(c>bc){bc=c;best=i}});
+    home[g]=best});
+  const perfect=P.pits.every((p,i)=>p.length&&p.every(v=>home[V[v].g]===i))
+    &&new Set(Object.values(home)).size===fams.length;
+  P.tries++;
+  if(perfect){P.revealed=true;boom();renderDig();window.scrollTo({top:0});return}
+  // 放錯的卡退回盤子
+  const wrong=[];
+  P.pits.forEach((p,i)=>{for(let k=p.length-1;k>=0;k--){const v=p[k];
+    if(home[V[v].g]!==i){wrong.push(v);p.splice(k,1)}}});
+  wrong.forEach(v=>P.tray.push(v));
+  renderDig(wrong.length?`有 ${wrong.length} 塊化石放錯坑，退回給你了——仔細看它們「變身的方式」！`
+    :"每個坑要住「一個家族」——現在有家族擠在同一個坑裡，把它們分開！","bad");
+  document.querySelectorAll(".tray .vcard").forEach(c=>{if(wrong.includes(c.dataset.v))c.classList.add("bad")});
+}
+
+/* ---------- 揭曉 ---------- */
+function renderReveal(sc){
+  sc.appendChild(el("div","msg good","🎉 鑑定成功！這一站的家族出土了——"));
+  sc.appendChild(el("div","bigstars",starsOf(P.tries,true)));
+  const fams=[...P.r.families].sort((a,b)=>(b.new?1:0)-(a.new?1:0));
+  const tas=[];
+  fams.forEach(f=>{
+    const g=G[f.g];
+    const box=el("div","fam");
+    const head=el("div","famhead");
+    const dot=el("div","fdot");dot.style.background=g.color;
+    head.appendChild(dot);
+    head.appendChild(el("div","famname",esc(g.name)));
+    head.appendChild(el("div",f.new?"newtag":"revtag",f.new?"⭐ 新發現！":"複習"));
+    box.appendChild(head);
+    box.appendChild(el("div","famhint",esc(g.hint)));
+    const t=el("table","ftable","<tr><th>原形</th><th>過去式</th><th>過去分詞</th><th>意思</th></tr>");
+    f.verbs.forEach(v=>{const o=V[v];
+      t.insertAdjacentHTML("beforeend",
+        `<tr><td>${esc(v)}</td><td class="ved">${esc(o.ved)}</td><td class="vpp">${esc(o.vpp)}</td><td class="zh">${esc(o.zh)}</td></tr>`)});
+    box.appendChild(t);
+    f.verbs.forEach(v=>{if(V[v].trap)box.appendChild(el("div","trapline",`⚠️ ${esc(v)}：${esc(V[v].trap)}`))});
+    const others=Object.values(V).filter(o=>o.g===f.g&&!f.verbs.includes(o.v)).map(o=>o.v);
+    if(others.length)box.appendChild(el("div","more","這家族還有："+others.map(esc).join("、")+"（圖鑑裡看全表）"));
+    if(f.new){
+      const rb=el("div","rulebox");
+      rb.innerHTML=`<label>✍️ 用你自己的話，寫下「${esc(g.name)}」的變身規則：</label>`;
+      const ta=document.createElement("textarea");
+      ta.placeholder="例：這一族的字……";
+      ta.value=S.rules[f.g]||"";
+      ta.oninput=()=>{S.rules[f.g]=ta.value.trim();save();upd()};
+      rb.appendChild(ta);box.appendChild(rb);tas.push(f.g);
+    }
+    sc.appendChild(box);
+  });
+  const btn=el("button","completebtn","🏺 收進圖鑑，完成這一站");
+  const note=el("div","completenote","");
+  function upd(){const miss=tas.filter(g=>!(S.rules[g]||"").length);
+    btn.disabled=miss.length>0;
+    note.textContent=miss.length?"把上面每個新家族的規則寫一句（自己的話就好），才能收進筆記本":"";}
+  upd();
+  btn.onclick=()=>{
+    const stars=P.tries<=1?3:P.tries===2?2:1;
+    S.done[P.r.id]=Math.max(S.done[P.r.id]||0,stars);save();
+    P=null;renderRoundList();window.scrollTo({top:0});
+  };
+  sc.appendChild(btn);sc.appendChild(note);
+}
+const starsOf=(tries,big)=>{const n=tries<=1?3:tries===2?2:1;return "★".repeat(n)+"☆".repeat(3-n)};
+
+/* ---------- 圖鑑 ---------- */
+function renderDex(){
+  const box=$("#view-dex");box.innerHTML="";
+  const disc=discovered(),dug=dugVerbs();
+  box.appendChild(el("div","prog",`出土家族 ${disc.size}/${GIDS.length}——點家族看全族三態表`));
+  GIDS.forEach(gid=>{
+    const g=G[gid],members=Object.values(V).filter(o=>o.g===gid);
+    const open=disc.has(gid);
+    const c=el("div","gcard"+(open?"":" lockg"));
+    const head=el("div","ghead");
+    const dot=el("div","fdot");dot.style.background=open?g.color:"#39435a";
+    head.appendChild(dot);
+    head.appendChild(el("div","gname",open?esc(g.name):"？？？（尚未出土）"));
+    head.appendChild(el("div","gnum",`${members.filter(m=>dug.has(m.v)).length}/${members.length}`));
+    c.appendChild(head);
+    if(open){
+      c.appendChild(el("div","ghint",esc(g.hint)));
+      const body=el("div","gbody");
+      members.forEach(m=>{
+        const r=el("div","vrow");
+        r.innerHTML=`<b>${esc(m.v)}</b><span class="ved">${esc(m.ved)}</span><span class="vpp">${esc(m.vpp)}</span>`+
+          (dug.has(m.v)?`<span class="dug">⭐</span>`:`<span class="latertag">後續出土</span>`)+
+          `<span class="zh">${esc(m.zh)}</span>`;
+        body.appendChild(r);
+      });
+      c.appendChild(body);
+      head.onclick=()=>c.classList.toggle("open");
+    }
+    box.appendChild(c);
+  });
+}
+
+/* ---------- 筆記本 ---------- */
+function renderNote(){
+  const box=$("#view-note");box.innerHTML="";
+  const disc=discovered();
+  if(!disc.size){box.appendChild(el("div","emptynote","筆記本還是空的。<br>去「挖掘」發現第一個家族，把你自己歸納的規則寫進來！"));return}
+  box.appendChild(el("div","prog","這些規則是你自己發現的——考前看這頁，比看課本表格快"));
+  GIDS.forEach(gid=>{
+    if(!disc.has(gid))return;
+    const g=G[gid];
+    const c=el("div","notecard");
+    c.innerHTML=`<span class="fdot" style="display:inline-block;background:${g.color}"></span> <b>${esc(g.name)}</b>`;
+    const ta=document.createElement("textarea");
+    ta.value=S.rules[gid]||"";ta.placeholder="我的規則…";
+    ta.oninput=()=>{S.rules[gid]=ta.value.trim();save()};
+    c.appendChild(ta);
+    box.appendChild(c);
+  });
+  const rb=el("button","resetbtn","重新開始整個遺跡（清除全部進度）");
+  rb.onclick=()=>{if(confirm("確定要清掉所有進度、星星和筆記嗎？")){localStorage.removeItem(LS);location.reload()}};
+  box.appendChild(rb);
+}
+
+renderRoundList();
+</script>
+</body>
+</html>
