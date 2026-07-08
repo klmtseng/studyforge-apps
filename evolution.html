@@ -146,7 +146,7 @@ const STAGE_EMOJI=["🥚","🐣","⚡","👑"]; // 未介紹/訓練中/進化型
 let S; try{S=JSON.parse(localStorage.getItem(LS))||{}}catch(e){S={}}
 S.st=S.st||{}; S.log=S.log||{}; S.intro=S.intro||0;
 const save=()=>localStorage.setItem(LS,JSON.stringify(S));
-const today=()=>Math.floor(Date.now()/864e5);
+const today=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/864e5);
 
 /* ---------- 小工具 ---------- */
 const $=s=>document.querySelector(s);
@@ -166,7 +166,7 @@ function streak(){let n=0,d=today();while(S.log[d]&&(S.log[d].n+S.log[d].r)>0){n
 function dueItems(){ // 到期複習(不含新卡);先到期的先出
   const d=today(),q=[];
   for(const [v,t] of Object.entries(S.st)){
-    if(t.d2<=d)q.push({v,f:2,due:t.d2});
+    if(t.d2<=d)q.push({v,f:2,due:t.d2,teach:!!t.teach});
     if((t.b2||0)>=UNLOCK&&(t.b3===undefined||t.d3<=d))q.push({v,f:3,due:t.d3===undefined?d:t.d3});
   }
   return q.sort((a,b)=>a.due-b.due);
@@ -198,7 +198,9 @@ function buildQueue(){
   Q=dueItems();
   let budget=newBudget();
   while(budget>0&&S.intro<CARDS.length){
-    Q.push({v:CARDS[S.intro].v,f:2,teach:true});
+    const nv=CARDS[S.intro].v;
+    if(!S.st[nv])S.st[nv]={seen:today(),d2:today(),teach:1}; // 先入排程,教學卡沒看完也不會漏
+    Q.push({v:nv,f:2,teach:true});
     S.intro++;budget--;logToday("n");
   }
   save();
@@ -241,7 +243,7 @@ function renderTeach(box,item){
   t.appendChild(chip);
   if(info.trap)t.appendChild(el("div","trapnote","⚠️ "+esc(info.trap)));
   const btn=el("button","nextbtn","記住了，馬上考我 ▶");
-  btn.onclick=()=>{item.teach=false;S.st[v]=S.st[v]||{seen:today()};save();renderTrain()};
+  btn.onclick=()=>{item.teach=false;S.st[v]=S.st[v]||{seen:today()};delete S.st[v].teach;save();renderTrain()};
   t.appendChild(btn);
   box.appendChild(t);
 }
